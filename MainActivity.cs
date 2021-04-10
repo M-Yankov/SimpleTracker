@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-
+using System.Linq;
 using Android.App;
 using Android.Content.PM;
 using Android.OS;
@@ -9,14 +9,13 @@ using Android.Support.Design.Widget;
 using Android.Support.V7.App;
 using Android.Views;
 using Android.Widget;
-using Plugin.CurrentActivity;
 
-using Xamarin.Essentials;
+// using Xamarin.Essentials;
 
-using Plugin.Geolocator;
 using Android.Locations;
 using Android.Content;
-using System.Linq.Expressions;
+using Android.Support.V4.App;
+using Android;
 
 namespace SimpleTracker
 {
@@ -24,94 +23,65 @@ namespace SimpleTracker
     public class MainActivity : AppCompatActivity
     {
         private LocationManager gpsManager;
-        private GpsLocationListener gpsListener;
+        private SimpleGpsLocationListener gpsListener;
+
+        private const int GpsRequestCode = 100;
 
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
-            Platform.Init(this, savedInstanceState);
+            // Platform.Init(this, savedInstanceState);
             SetContentView(Resource.Layout.activity_main);
-
-            CrossCurrentActivity.Current.Init(this, savedInstanceState);
 
             Android.Support.V7.Widget.Toolbar toolbar = FindViewById<Android.Support.V7.Widget.Toolbar>(Resource.Id.toolbar);
             SetSupportActionBar(toolbar);
 
             gpsManager = Application.Context.GetSystemService(Context.LocationService) as LocationManager;
-            gpsListener = new GpsLocationListener();
+            gpsListener = new SimpleGpsLocationListener();
+            gpsListener.ProviderDisabled += GpsListener_ProviderDisabled;
 
             Button trackButton = FindViewById<Button>(Resource.Id.trackButton);
             trackButton.Click += TrackButton_Click;
 
             Button stopButton = FindViewById<Button>(Resource.Id.stopTrackButton);
+            stopButton.Enabled = false;
             stopButton.Click += StopButton_Click;
-            //FloatingActionButton fab = FindViewById<FloatingActionButton>(Resource.Id.fab);
-            //fab.Click += FabOnClick;
+        }
+
+        private void GpsListener_ProviderDisabled(object sender, EventArgs e)
+        {
+            if (gpsManager.IsProviderEnabled(LocationManager.GpsProvider))
+            {
+                Intent gpsOptionsIntent = new Intent(
+                    Android.Provider.Settings.ActionLocationSourceSettings);
+
+                StartActivity(gpsOptionsIntent);
+            }
         }
 
         private void StopButton_Click(object sender, EventArgs e)
         {
             gpsManager.RemoveUpdates(gpsListener);
+            FindViewById<Button>(Resource.Id.trackButton).Enabled = true;
+            FindViewById<Button>(Resource.Id.stopTrackButton).Enabled = false;
+
+            FindViewById<TextView>(Resource.Id.textView1).Text += "\nStopped";
         }
 
         private void TrackButton_Click(object sender, EventArgs e)
         {
-            //Location location = await Geolocation.GetLastKnownLocationAsync();
-            //if (location == null)
-            //{
-            /*
-                var request = new GeolocationRequest(GeolocationAccuracy.Medium, TimeSpan.FromSeconds(10));
-            // cts = new CancellationTokenSource();
-            Location location = await Geolocation.GetLocationAsync(request, default);
+            FindViewById<Button>(Resource.Id.trackButton).Enabled = false;
+            FindViewById<Button>(Resource.Id.stopTrackButton).Enabled = true;
 
-                if (location != null)
-                {
-                    Console.WriteLine($"Latitude: {location.Latitude}, Longitude: {location.Longitude}, Altitude: {location.Altitude}");
-                    TextView label = FindViewById<TextView>(Resource.Id.textView1);
-                    label.Text = $"{nameof(location.Longitude)}:{location.Longitude} {nameof(location.Latitude)}{location.Latitude}";
-                }
-            //}
-            */
-
-
-            var locationCriteria = new Criteria();
-
-            locationCriteria.Accuracy = Accuracy.Coarse;
-            locationCriteria.PowerRequirement = Power.Medium;
-
-            string provider = gpsManager.GetBestProvider(locationCriteria, true);
-           
-            gpsManager.RequestLocationUpdates(provider, 5000, 10, gpsListener);
-            /*
-            
-            var allProvider = gpsManager.GetProviders(enabledOnly: false);
-            
-            foreach (var p in allProvider)
-            {
-                var isE =
-                    gpsManager.IsProviderEnabled(p);
-            }
-            return;
-            if (CrossGeolocator.Current.IsListening)
-            {
-                return;
-            }
-
-            CrossGeolocator.Current.StartListeningAsync(TimeSpan.FromSeconds(5), 10);
-            CrossGeolocator.Current.PositionChanged += Current_PositionChanged;
-            CrossGeolocator.Current.PositionError += Current_PositionError;*/
+            ActivityCompat.RequestPermissions(this, new string[] { Manifest.Permission.AccessFineLocation }, GpsRequestCode);
         }
 
-        private void Current_PositionError(object sender, Plugin.Geolocator.Abstractions.PositionErrorEventArgs e)
-        {
-            System.Diagnostics.Debug.WriteLine(e.Error);
-        }
-
-        private void Current_PositionChanged(object sender, Plugin.Geolocator.Abstractions.PositionEventArgs e)
+        private void Current_PositionChanged(object sender, PositionEventArgs e)
         {
             TextView label = FindViewById<TextView>(Resource.Id.textView1);
             
-            label.Text = $"{nameof(e.Position.Longitude)}:{e.Position.Longitude} {nameof(e.Position.Latitude)}{e.Position.Latitude}";
+            label.Text += $"\n{nameof(e.Location.Longitude)}:{e.Location.Longitude} {nameof(e.Location.Latitude)}{e.Location.Latitude}";
+            label.SetTextColor(Android.Graphics.Color.Black);
         }
 
         public override bool OnCreateOptionsMenu(IMenu menu)
@@ -138,11 +108,42 @@ namespace SimpleTracker
                 .SetAction("Action", (Android.Views.View.IOnClickListener)null).Show();
         }
 
-        public override void OnRequestPermissionsResult(int requestCode, string[] permissions, [GeneratedEnum] Android.Content.PM.Permission[] grantResults)
+        public override void OnRequestPermissionsResult(
+            int requestCode, 
+            string[] permissions, 
+            [GeneratedEnum] Permission[] grantResults)
         {
-            // Xamarin.Essentials.Platform.OnRequestPermissionsResult(requestCode, permissions, grantResults);
+            if (requestCode == GpsRequestCode)
+            {
+                bool arePermissionsForLocationGranted = 
+                    permissions?.Contains(Manifest.Permission.AccessFineLocation) == true
+                    && grantResults?.Contains(Permission.Granted) == true;
+                
+                if (arePermissionsForLocationGranted)
+                {
+                    gpsListener.PositionChanged += Current_PositionChanged;
+                    gpsManager.RequestLocationUpdates(LocationManager.GpsProvider, 1000, 5, gpsListener);
+                }
+                else
+                {
+                    TextView text = FindViewById<TextView>(Resource.Id.textView1);
+                    
+                    text.Text = "Please provide GPS permissions.";
+                    text.SetTextColor(Android.Graphics.Color.Red);
 
-            Plugin.Permissions.PermissionsImplementation.Current.OnRequestPermissionsResult(requestCode, permissions, grantResults);
+                    FindViewById<Button>(Resource.Id.trackButton).Enabled = true;
+                    FindViewById<Button>(Resource.Id.stopTrackButton).Enabled = false;
+                }
+
+                //Permission res = CheckCallingOrSelfPermission(Manifest.Permission.AccessFineLocation);
+                //if (res == Permission.Granted)
+                //{
+                //}
+            }
+
+            // Xamarin.Essentials
+            // Platform.OnRequestPermissionsResult(requestCode, permissions, grantResults);
+
             base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
         }
     }
