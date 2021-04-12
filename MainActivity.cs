@@ -50,7 +50,7 @@ namespace SimpleTracker
 
         private void GpsListener_ProviderDisabled(object sender, EventArgs e)
         {
-            if (gpsManager.IsProviderEnabled(LocationManager.GpsProvider))
+            if (!gpsManager.IsProviderEnabled(LocationManager.GpsProvider))
             {
                 Intent gpsOptionsIntent = new Intent(
                     Android.Provider.Settings.ActionLocationSourceSettings);
@@ -66,6 +66,10 @@ namespace SimpleTracker
             FindViewById<Button>(Resource.Id.stopTrackButton).Enabled = false;
 
             FindViewById<TextView>(Resource.Id.textView1).Text += "\nStopped";
+
+            var intent = new Intent(this, typeof(Services.GpsTrackerService));
+            intent.SetAction("Stop");
+            StopService(intent);
         }
 
         private void TrackButton_Click(object sender, EventArgs e)
@@ -123,6 +127,10 @@ namespace SimpleTracker
                 {
                     gpsListener.PositionChanged += Current_PositionChanged;
                     gpsManager.RequestLocationUpdates(LocationManager.GpsProvider, 1000, 5, gpsListener);
+
+                    var intent = new Intent(this, typeof(Services.GpsTrackerService));
+                    intent.SetAction("Start");
+                    StartService(intent);
                 }
                 else
                 {
