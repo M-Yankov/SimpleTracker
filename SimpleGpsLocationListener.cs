@@ -27,7 +27,7 @@ namespace SimpleTracker
 
         public void OnProviderEnabled(string provider)
         {
-            // When Enagle GPS location from settigns.
+            // When enable GPS location from settings.
         }
 
         public void OnStatusChanged(string provider, [GeneratedEnum] Availability status, Bundle extras)

@@ -22,23 +22,19 @@ namespace SimpleTracker
     [Activity(Label = "@string/app_name", Theme = "@style/AppTheme.NoActionBar", MainLauncher = true)]
     public class MainActivity : AppCompatActivity
     {
-        private LocationManager gpsManager;
-        private SimpleGpsLocationListener gpsListener;
-
         private const int GpsRequestCode = 100;
 
         protected override void OnCreate(Bundle savedInstanceState)
         {
+            // How to access the service here ?
+            // I need to know this information in order to show some info on the screen and disable buttons.
+
             base.OnCreate(savedInstanceState);
             // Platform.Init(this, savedInstanceState);
             SetContentView(Resource.Layout.activity_main);
 
             Android.Support.V7.Widget.Toolbar toolbar = FindViewById<Android.Support.V7.Widget.Toolbar>(Resource.Id.toolbar);
             SetSupportActionBar(toolbar);
-
-            gpsManager = Application.Context.GetSystemService(Context.LocationService) as LocationManager;
-            gpsListener = new SimpleGpsLocationListener();
-            gpsListener.ProviderDisabled += GpsListener_ProviderDisabled;
 
             Button trackButton = FindViewById<Button>(Resource.Id.trackButton);
             trackButton.Click += TrackButton_Click;
@@ -48,20 +44,8 @@ namespace SimpleTracker
             stopButton.Click += StopButton_Click;
         }
 
-        private void GpsListener_ProviderDisabled(object sender, EventArgs e)
-        {
-            if (!gpsManager.IsProviderEnabled(LocationManager.GpsProvider))
-            {
-                Intent gpsOptionsIntent = new Intent(
-                    Android.Provider.Settings.ActionLocationSourceSettings);
-
-                StartActivity(gpsOptionsIntent);
-            }
-        }
-
         private void StopButton_Click(object sender, EventArgs e)
         {
-            gpsManager.RemoveUpdates(gpsListener);
             FindViewById<Button>(Resource.Id.trackButton).Enabled = true;
             FindViewById<Button>(Resource.Id.stopTrackButton).Enabled = false;
 
@@ -75,17 +59,8 @@ namespace SimpleTracker
         private void TrackButton_Click(object sender, EventArgs e)
         {
             FindViewById<Button>(Resource.Id.trackButton).Enabled = false;
-            FindViewById<Button>(Resource.Id.stopTrackButton).Enabled = true;
 
             ActivityCompat.RequestPermissions(this, new string[] { Manifest.Permission.AccessFineLocation }, GpsRequestCode);
-        }
-
-        private void Current_PositionChanged(object sender, PositionEventArgs e)
-        {
-            TextView label = FindViewById<TextView>(Resource.Id.textView1);
-            
-            label.Text += $"\n{nameof(e.Location.Longitude)}:{e.Location.Longitude} {nameof(e.Location.Latitude)}{e.Location.Latitude}";
-            label.SetTextColor(Android.Graphics.Color.Black);
         }
 
         public override bool OnCreateOptionsMenu(IMenu menu)
@@ -125,8 +100,7 @@ namespace SimpleTracker
                 
                 if (arePermissionsForLocationGranted)
                 {
-                    gpsListener.PositionChanged += Current_PositionChanged;
-                    gpsManager.RequestLocationUpdates(LocationManager.GpsProvider, 1000, 5, gpsListener);
+                    FindViewById<Button>(Resource.Id.stopTrackButton).Enabled = true;
 
                     var intent = new Intent(this, typeof(Services.GpsTrackerService));
                     intent.SetAction("Start");
