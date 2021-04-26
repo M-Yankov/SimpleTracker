@@ -6,6 +6,8 @@ using Android.Runtime;
 using Android.Views;
 using Android.Widget;
 
+using SimpleTracker.Binders;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,13 +28,19 @@ namespace SimpleTracker.Services
 
         private bool isStarted = false;
 
+        private List<Location> locations;
+
         private const int GpsNotificationId = 1012;
+
+        public IBinder Binder { get; set; }
+
         public override void OnCreate()
         {
-            gpsManager = (LocationManager)GetSystemService(LocationService);
-            notificationManager = (NotificationManager)GetSystemService(NotificationService);
+            this.gpsManager = (LocationManager)GetSystemService(LocationService);
+            this.notificationManager = (NotificationManager)GetSystemService(NotificationService);
 
-            gpsListener = new SimpleGpsLocationListener();
+            this.gpsListener = new SimpleGpsLocationListener();
+            this.locations = new List<Location>();
 
             base.OnCreate();
         }
@@ -61,16 +69,33 @@ namespace SimpleTracker.Services
         {
             // Return null because this is a pure started service. A hybrid service would return a binder that would
             // allow access to the GetFormattedStamp() method.
-            return null;
+
+            this.Binder = new GpsTrackerServiceBinder(this);
+            return this.Binder;
         }
 
         public override void OnDestroy()
         {
-            gpsListener.PositionChanged -= Current_PositionChanged;
-            gpsListener.ProviderDisabled -= GpsListener_ProviderDisabled;
-            gpsManager.RemoveUpdates(gpsListener);
+            this.gpsListener.PositionChanged -= Current_PositionChanged;
+            this.gpsListener.ProviderDisabled -= GpsListener_ProviderDisabled;
+            this.gpsManager.RemoveUpdates(gpsListener);
             this.UnRegisterService();
+
+            this.gpsManager = null;
+            this.notificationManager = null;
+
+            this.gpsListener = null;
+
+            this.Binder = null;
+
+            this.locations = null;
+
             base.OnDestroy();
+        }
+
+        public IEnumerable<Location> GetStoredLocations()
+        {
+            return this.locations;
         }
 
         private void RegisterService()
@@ -80,7 +105,7 @@ namespace SimpleTracker.Services
                 return;
             }
 
-            isStarted = true;
+            this.isStarted = true;
 
             // The constructor is deprecated, but it's necessary for old androids.
             var notification = new Notification.Builder(this)
@@ -91,9 +116,9 @@ namespace SimpleTracker.Services
 
             StartForeground(GpsNotificationId, notification.Build());
 
-            gpsListener.PositionChanged += Current_PositionChanged;
-            gpsListener.ProviderDisabled += GpsListener_ProviderDisabled;
-            gpsManager.RequestLocationUpdates(LocationManager.GpsProvider, minTime: 1000, minDistance: 5, gpsListener);
+            this.gpsListener.PositionChanged += Current_PositionChanged;
+            this.gpsListener.ProviderDisabled += GpsListener_ProviderDisabled;
+            this.gpsManager.RequestLocationUpdates(LocationManager.GpsProvider, minTime: 1000, minDistance: 5, this.gpsListener);
 
             // This is how to update a notification text
             /*
@@ -106,6 +131,7 @@ namespace SimpleTracker.Services
 
         private void Current_PositionChanged(object sender, PositionEventArgs e)
         {
+            locations.Add(e.Location);
             Android.Util.Log.Debug("LOG:", $"PostionChanged L:{e.Location.Latitude}");
         }
 
@@ -127,7 +153,7 @@ namespace SimpleTracker.Services
         {
             StopForeground(true);
             StopSelf();
-            isStarted = false;
+            this.isStarted = false;
         }
     }
 }

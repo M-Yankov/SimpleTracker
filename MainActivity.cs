@@ -16,6 +16,7 @@ using Android.Locations;
 using Android.Content;
 using Android.Support.V4.App;
 using Android;
+using System.Collections.Generic;
 
 namespace SimpleTracker
 {
@@ -23,6 +24,7 @@ namespace SimpleTracker
     public class MainActivity : AppCompatActivity
     {
         private const int GpsRequestCode = 100;
+        private Connections.GpsTrackerServiceConnection connection;
 
         protected override void OnCreate(Bundle savedInstanceState)
         {
@@ -42,6 +44,44 @@ namespace SimpleTracker
             Button stopButton = FindViewById<Button>(Resource.Id.stopTrackButton);
             stopButton.Enabled = false;
             stopButton.Click += StopButton_Click;
+
+            // It's still null if application is closed from the system, but the service is running
+            // Maybe I need to destroy the service in Ondestroy.
+            if (this.connection == null)
+            {
+                this.connection = new Connections.GpsTrackerServiceConnection(this);
+            }
+        }
+
+        protected override void OnResume()
+        {
+            base.OnResume();
+
+            if (this.connection?.IsConnected == true)
+            {
+                IEnumerable<string> locationTexts =
+                    this.connection
+                        .Binder
+                        .Service
+                        .GetStoredLocations()
+                        .Select(x => $"La:{x.Latitude}, Lo:{x.Longitude}");
+
+                FindViewById<TextView>(Resource.Id.textView1).Text = string.Join("\n", locationTexts);
+            }
+        }
+
+        protected override void OnDestroy()
+        {
+            base.OnDestroy();
+
+            var intent = new Intent(this, typeof(Services.GpsTrackerService));
+            intent.SetAction("Stop");
+            StopService(intent);
+
+            if (this.connection?.IsConnected == true)
+            {
+                UnbindService(this.connection);
+            }
         }
 
         private void StopButton_Click(object sender, EventArgs e)
@@ -54,6 +94,11 @@ namespace SimpleTracker
             var intent = new Intent(this, typeof(Services.GpsTrackerService));
             intent.SetAction("Stop");
             StopService(intent);
+
+            if (this.connection?.IsConnected == true)
+            {
+                UnbindService(this.connection);
+            }
         }
 
         private void TrackButton_Click(object sender, EventArgs e)
@@ -63,11 +108,11 @@ namespace SimpleTracker
             ActivityCompat.RequestPermissions(this, new string[] { Manifest.Permission.AccessFineLocation }, GpsRequestCode);
         }
 
-        public override bool OnCreateOptionsMenu(IMenu menu)
-        {
-            MenuInflater.Inflate(Resource.Menu.menu_main, menu);
-            return true;
-        }
+        //public override bool OnCreateOptionsMenu(IMenu menu)
+        //{
+        //    MenuInflater.Inflate(Resource.Menu.menu_main, menu);
+        //    return true;
+        //}
 
         public override bool OnOptionsItemSelected(IMenuItem item)
         {
@@ -80,12 +125,12 @@ namespace SimpleTracker
             return base.OnOptionsItemSelected(item);
         }
 
-        private void FabOnClick(object sender, EventArgs eventArgs)
-        {
-            View view = (View)sender;
-            Snackbar.Make(view, "Replace with your own action", Snackbar.LengthLong)
-                .SetAction("Action", (Android.Views.View.IOnClickListener)null).Show();
-        }
+        //private void FabOnClick(object sender, EventArgs eventArgs)
+        //{
+        //    View view = (View)sender;
+        //    Snackbar.Make(view, "Replace with your own action", Snackbar.LengthLong)
+        //        .SetAction("Action", (Android.Views.View.IOnClickListener)null).Show();
+        //}
 
         public override void OnRequestPermissionsResult(
             int requestCode, 
@@ -104,6 +149,8 @@ namespace SimpleTracker
 
                     var intent = new Intent(this, typeof(Services.GpsTrackerService));
                     intent.SetAction("Start");
+                    
+                    BindService(intent, this.connection, Bind.AutoCreate);
                     StartService(intent);
                 }
                 else

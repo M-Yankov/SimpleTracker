@@ -65,6 +65,8 @@
     <Reference Include="System.Numerics.Vectors" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Binders\GpsTrackerServiceBinder.cs" />
+    <Compile Include="Connections\GpsTrackerServiceConnection.cs" />
     <Compile Include="Services\GpsTrackerService.cs" />
     <Compile Include="SimpleGpsLocationListener.cs" />
     <Compile Include="MainActivity.cs" />
