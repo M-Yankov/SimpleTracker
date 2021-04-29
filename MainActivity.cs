@@ -26,6 +26,8 @@ namespace SimpleTracker
         private const int GpsRequestCode = 100;
         private Connections.GpsTrackerServiceConnection connection;
 
+
+
         protected override void OnCreate(Bundle savedInstanceState)
         {
             // How to access the service here ?
@@ -57,7 +59,7 @@ namespace SimpleTracker
         {
             base.OnResume();
 
-            if (this.connection?.IsConnected == true)
+            if (this.IsServiceConnected)
             {
                 IEnumerable<string> locationTexts =
                     this.connection
@@ -74,14 +76,12 @@ namespace SimpleTracker
         {
             base.OnDestroy();
 
-            var intent = new Intent(this, typeof(Services.GpsTrackerService));
-            intent.SetAction("Stop");
-            StopService(intent);
+            DisconnectService();
+        }
 
-            if (this.connection?.IsConnected == true)
-            {
-                UnbindService(this.connection);
-            }
+        internal void ShowUpdates()
+        {
+            this.OnResume();
         }
 
         private void StopButton_Click(object sender, EventArgs e)
@@ -91,14 +91,7 @@ namespace SimpleTracker
 
             FindViewById<TextView>(Resource.Id.textView1).Text += "\nStopped";
 
-            var intent = new Intent(this, typeof(Services.GpsTrackerService));
-            intent.SetAction("Stop");
-            StopService(intent);
-
-            if (this.connection?.IsConnected == true)
-            {
-                UnbindService(this.connection);
-            }
+            DisconnectService();
         }
 
         private void TrackButton_Click(object sender, EventArgs e)
@@ -175,5 +168,19 @@ namespace SimpleTracker
 
             base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
         }
+
+        private void DisconnectService()
+        {
+            var intent = new Intent(this, typeof(Services.GpsTrackerService));
+            intent.SetAction("Stop");
+            StopService(intent);
+
+            if (this.IsServiceConnected)
+            {
+                UnbindService(this.connection);
+            }
+        }
+
+        private bool IsServiceConnected => this.connection?.IsConnected == true;
     }
 }

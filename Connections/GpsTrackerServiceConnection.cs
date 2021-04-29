@@ -35,10 +35,10 @@ namespace SimpleTracker.Connections
             this.Binder = service as GpsTrackerServiceBinder;
             this.IsConnected = this.Binder != null;
 
-            // if (this.IsConnected)
-            // {
-            //     this.mainActivity.Update ....();
-            // }
+            if (this.IsConnected)
+            {
+                this.mainActivity.ShowUpdates();
+            }
         }
 
         public void OnServiceDisconnected(ComponentName name)

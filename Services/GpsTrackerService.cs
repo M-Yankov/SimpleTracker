@@ -7,9 +7,11 @@ using Android.Views;
 using Android.Widget;
 
 using SimpleTracker.Binders;
+using SimpleTracker.Database;
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -34,6 +36,9 @@ namespace SimpleTracker.Services
 
         public IBinder Binder { get; set; }
 
+        private SimpleGpsDatabase database;
+        private int? currentRouteId;
+
         public override void OnCreate()
         {
             this.gpsManager = (LocationManager)GetSystemService(LocationService);
@@ -41,6 +46,12 @@ namespace SimpleTracker.Services
 
             this.gpsListener = new SimpleGpsLocationListener();
             this.locations = new List<Location>();
+
+            string databasePath = Path.Combine(
+                System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments), "SimpleGps.db");
+
+            this.database = new SimpleGpsDatabase(databasePath);
+
 
             base.OnCreate();
         }
@@ -95,7 +106,7 @@ namespace SimpleTracker.Services
 
         public IEnumerable<Location> GetStoredLocations()
         {
-            return this.locations;
+            return this.locations ?? Enumerable.Empty<Location>();
         }
 
         private void RegisterService()
@@ -116,6 +127,11 @@ namespace SimpleTracker.Services
 
             StartForeground(GpsNotificationId, notification.Build());
 
+            SimpleGpsRoute route = new SimpleGpsRoute() { Name = $"Route: {DateTime.Now.ToShortDateString()} {DateTime.Now.ToShortTimeString()}" };
+            this.database.Add(route);
+            
+            currentRouteId = route.Id;
+
             this.gpsListener.PositionChanged += Current_PositionChanged;
             this.gpsListener.ProviderDisabled += GpsListener_ProviderDisabled;
             this.gpsManager.RequestLocationUpdates(LocationManager.GpsProvider, minTime: 1000, minDistance: 5, this.gpsListener);
@@ -133,6 +149,15 @@ namespace SimpleTracker.Services
         {
             locations.Add(e.Location);
             Android.Util.Log.Debug("LOG:", $"PostionChanged L:{e.Location.Latitude}");
+
+            this.database.Add(new SimpleGpsLocation()
+            {
+                Altitude = e.Location.Altitude,
+                DateTime = DateTime.UtcNow,
+                Latitude = e.Location.Latitude,
+                Longitude = e.Location.Longitude,
+                SimpleGpsRouteId = currentRouteId.Value
+            });
         }
 
         private void GpsListener_ProviderDisabled(object sender, EventArgs e)
