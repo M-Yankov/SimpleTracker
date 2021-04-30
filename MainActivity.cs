@@ -17,6 +17,9 @@ using Android.Content;
 using Android.Support.V4.App;
 using Android;
 using System.Collections.Generic;
+using System.IO;
+using SQLite;
+using System.Text;
 
 namespace SimpleTracker
 {
@@ -46,6 +49,9 @@ namespace SimpleTracker
             Button stopButton = FindViewById<Button>(Resource.Id.stopTrackButton);
             stopButton.Enabled = false;
             stopButton.Click += StopButton_Click;
+
+            Button routesButton = FindViewById<Button>(Resource.Id.routesButton);
+            routesButton.Click += ShowRoutes_Click;
 
             // It's still null if application is closed from the system, but the service is running
             // Maybe I need to destroy the service in Ondestroy.
@@ -99,6 +105,26 @@ namespace SimpleTracker
             FindViewById<Button>(Resource.Id.trackButton).Enabled = false;
 
             ActivityCompat.RequestPermissions(this, new string[] { Manifest.Permission.AccessFineLocation }, GpsRequestCode);
+        }
+
+        private void ShowRoutes_Click(object sender, EventArgs e)
+        {
+            string databasePath = Path.Combine(
+                System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments), "SimpleGps.db");
+            var databaseConnection = new SQLiteConnection(databasePath);
+
+            databaseConnection.CreateTable<Database.SimpleGpsLocation>();
+            databaseConnection.CreateTable<Database.SimpleGpsRoute>();
+
+            StringBuilder result = new StringBuilder();
+            var routes = databaseConnection.Table<Database.SimpleGpsRoute>().ToList();
+            foreach (var route in routes)
+            {
+                int count = databaseConnection.Table<Database.SimpleGpsLocation>().Count(x => x.SimpleGpsRouteId == route.Id);
+                result.AppendLine($"{route.Id}. {route.Name} ({count})");
+            }
+
+            FindViewById<TextView>(Resource.Id.textView1).Text = result.ToString();
         }
 
         //public override bool OnCreateOptionsMenu(IMenu menu)

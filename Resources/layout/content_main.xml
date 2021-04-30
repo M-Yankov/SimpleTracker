@@ -35,6 +35,14 @@
             android:id="@+id/stopTrackButton"
             android:text="@string/button_stop_track"
             />
+        <Button
+            android:minHeight="25px"
+            android:minWidth="25px"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/routesButton"
+            android:text="@string/button_show_routes"
+        />
 
     </LinearLayout>
 </RelativeLayout>
