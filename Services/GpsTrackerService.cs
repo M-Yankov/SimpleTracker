@@ -167,6 +167,8 @@ namespace SimpleTracker.Services
                 Intent gpsOptionsIntent = new Intent(
                     Android.Provider.Settings.ActionLocationSourceSettings);
 
+                gpsOptionsIntent.SetFlags(ActivityFlags.NewTask | ActivityFlags.ClearTask);
+
                 StartActivity(gpsOptionsIntent);
             }
         }
