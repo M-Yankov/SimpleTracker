@@ -1,5 +1,4 @@
 ﻿using SQLite;
-using System.Collections.Generic;
 
 namespace SimpleTracker.Database
 {
