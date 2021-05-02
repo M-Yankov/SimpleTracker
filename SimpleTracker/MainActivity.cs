@@ -67,14 +67,9 @@ namespace SimpleTracker
 
             if (this.IsServiceConnected)
             {
-                IEnumerable<string> locationTexts =
-                    this.connection
-                        .Binder
-                        .Service
-                        .GetStoredLocations()
-                        .Select(x => $"La:{x.Latitude}, Lo:{x.Longitude}");
-
-                FindViewById<TextView>(Resource.Id.textView1).Text = string.Join("\n", locationTexts);
+                // Revise the code below: What information to show when user returns to main screen?
+                // Connect to database 
+                FindViewById<TextView>(Resource.Id.textView1).Text = $"Recording...";
             }
         }
 

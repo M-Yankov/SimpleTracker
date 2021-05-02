@@ -30,7 +30,7 @@ namespace SimpleTracker.Services
 
         private bool isStarted = false;
 
-        private List<Location> locations;
+        private List<SimpleGpsLocation> locations;
 
         private const int GpsNotificationId = 1012;
 
@@ -45,7 +45,7 @@ namespace SimpleTracker.Services
             this.notificationManager = (NotificationManager)GetSystemService(NotificationService);
 
             this.gpsListener = new SimpleGpsLocationListener();
-            this.locations = new List<Location>();
+            this.locations = new List<SimpleGpsLocation>();
 
             string databasePath = Path.Combine(
                 System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments), "SimpleGps.db");
@@ -99,19 +99,24 @@ namespace SimpleTracker.Services
 
             this.Binder = null;
 
+            if (this.locations?.Any() == true)
+            {
+                this.database.Add(this.locations);
+            }
+
             this.locations = null;
 
             base.OnDestroy();
         }
 
-        public IEnumerable<Location> GetStoredLocations()
+        public IEnumerable<SimpleGpsLocation> GetStoredLocations()
         {
-            return this.locations ?? Enumerable.Empty<Location>();
+            return this.locations ?? Enumerable.Empty<SimpleGpsLocation>();
         }
 
         private void RegisterService()
         {
-            if (isStarted)
+            if (this.isStarted)
             {
                 return;
             }
@@ -127,10 +132,13 @@ namespace SimpleTracker.Services
 
             StartForeground(GpsNotificationId, notification.Build());
 
-            SimpleGpsRoute route = new SimpleGpsRoute() { Name = $"Route: {DateTime.Now.ToShortDateString()} {DateTime.Now.ToShortTimeString()}" };
+            SimpleGpsRoute route = new SimpleGpsRoute()
+            { 
+                Name = $"Route: {DateTime.Now.ToShortDateString()} {DateTime.Now.ToShortTimeString()}"
+            };
             this.database.Add(route);
             
-            currentRouteId = route.Id;
+            this.currentRouteId = route.Id;
 
             this.gpsListener.PositionChanged += Current_PositionChanged;
             this.gpsListener.ProviderDisabled += GpsListener_ProviderDisabled;
@@ -147,10 +155,7 @@ namespace SimpleTracker.Services
 
         private void Current_PositionChanged(object sender, PositionEventArgs e)
         {
-            locations.Add(e.Location);
-            Android.Util.Log.Debug("LOG:", $"PostionChanged L:{e.Location.Latitude}");
-
-            this.database.Add(new SimpleGpsLocation()
+            this.locations.Add(new SimpleGpsLocation()
             {
                 Altitude = e.Location.Altitude,
                 DateTime = DateTime.UtcNow,
@@ -158,6 +163,16 @@ namespace SimpleTracker.Services
                 Longitude = e.Location.Longitude,
                 SimpleGpsRouteId = currentRouteId.Value
             });
+
+            if (this.locations.Count >= 25)
+            {
+                this.database.Add(this.locations);
+                this.locations = new List<SimpleGpsLocation>();
+            }
+
+#if DEBUG
+            Android.Util.Log.Debug("LOG:", $"PostionChanged L:{e.Location.Latitude}");
+#endif
         }
 
         private void GpsListener_ProviderDisabled(object sender, EventArgs e)

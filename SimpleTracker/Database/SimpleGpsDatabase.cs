@@ -17,7 +17,7 @@ namespace SimpleTracker.Database
 {
     public class SimpleGpsDatabase
     {
-        private SQLiteConnection databaseConnection;
+        private readonly SQLiteConnection databaseConnection;
 
         public SimpleGpsDatabase(string path)
         {
@@ -30,6 +30,11 @@ namespace SimpleTracker.Database
         public int Add(SimpleGpsLocation model)
         {
             return this.databaseConnection.Insert(model);
+        }
+
+        public int Add(IEnumerable<SimpleGpsLocation> locations)
+        {
+            return this.databaseConnection.InsertAll(locations);
         }
 
         public int Add(SimpleGpsRoute model)
