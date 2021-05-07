@@ -25,43 +25,51 @@ namespace GpxCreator
             databaseConnection.CreateTable<SimpleGpsLocation>();
             databaseConnection.CreateTable<SimpleGpsRoute>();
 
-            IEnumerable<gpxTrkTrkpt> points = databaseConnection.Table<SimpleGpsLocation>().Where(x => x.SimpleGpsRouteId == 5)
+            var routes = databaseConnection.Table<SimpleGpsRoute>()
+                .ToList();
+
+            for (int i = routes.Count - 1; i > routes.Count - 3; i--)
+            {
+                SimpleGpsRoute item = routes[i];
+                IEnumerable<gpxTrkTrkpt> points = databaseConnection.Table<SimpleGpsLocation>().Where(x => x.SimpleGpsRouteId == item.Id)
                 .ToList()
                 .Select(x => new gpxTrkTrkpt()
                 {
-                    ele = x.Altitude.ToString("F1"),
-                    lat = x.Latitude.ToString("F7"),
-                    lon = x.Longitude.ToString("F7"),
-                    time = x.DateTime.ToString("u").Replace(' ', 'T')
+                    ele = x.Altitude,//.ToString("F1"),
+                    lat = x.Latitude,//.ToString("F7"),
+                    lon = x.Longitude,//.ToString("F7"),
+                    time = x.DateTime,//.ToString("u").Replace(' ', 'T')
                 });
 
-            var exportdata = new gpx()
-            {
-                creator = "com.mihayn.simpletracker",
-                version = 1.1m,
-                metadata = new gpxMetadata()
+                var exportdata = new gpx()
                 {
-                    link = new gpxMetadataLink() { href = "http://localhost:8080", text = "localhost" },
-                    time = new DateTime(2021, 04, 30, 11, 6, 6),
-                },
-                trk = new gpxTrk()
+                    creator = "com.mihyan.simpletracker",
+                    version = 1.1m,
+                    metadata = new gpxMetadata()
+                    {
+                        link = new gpxMetadataLink() { href = "http://localhost:8080", text = "localhost" },
+                        time = points.OrderBy(x => x.time).First().time,
+                    },
+                    trk = new gpxTrk()
+                    {
+                        name = "[Simple tracker]",
+                        trkseg = points.ToArray(),
+                    }
+                };
+
+                string destination = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), $"route{i + 1}.gpx");
+
+                XmlWriterSettings settings = new XmlWriterSettings()
                 {
-                    name = "[Simple tracker]",
-                    trkseg = points.ToArray(),
-                }
-            };
+                    Indent = true,
+                    NewLineHandling = NewLineHandling.Replace
+                };
 
-            string destination = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "route.gpx");
 
-            XmlWriterSettings settings = new XmlWriterSettings()
-            {
-                Indent = false,
-                NewLineHandling = NewLineHandling.None
-            };
-
-            using XmlWriter writer = XmlWriter.Create(destination, settings);
-            new XmlSerializer(exportdata.GetType())
-                .Serialize(writer, exportdata);
+                //using XmlWriter writer = XmlWriter.Create(destination, new XmlWriterSettings());
+                new XmlSerializer(exportdata.GetType())
+                    .Serialize(new StreamWriter(destination), exportdata);
+            }
         }
     }
 }

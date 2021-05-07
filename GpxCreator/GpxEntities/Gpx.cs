@@ -200,67 +200,19 @@ namespace GpxCreator.GpxEntities
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://www.topografix.com/GPX/1/1")]
     public partial class gpxTrkTrkpt
     {
-        private string eleField;
-
-        private string timeField;
-
-        private string latField;
-
-        private string lonField;
+        /// <remarks/>
+        public double ele { get; set; }
 
         /// <remarks/>
-        public string ele
-        {
-            get
-            {
-                return this.eleField;
-            }
-            set
-            {
-                this.eleField = value;
-            }
-        }
-
-        /// <remarks/>
-        public string time
-        {
-            get
-            {
-                return this.timeField;
-            }
-            set
-            {
-                this.timeField = value;
-            }
-        }
+        public DateTime time { get; set; }
 
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public string lat
-        {
-            get
-            {
-                return this.latField;
-            }
-            set
-            {
-                this.latField = value;
-            }
-        }
+        public double lat { get; set; }
 
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public string lon
-        {
-            get
-            {
-                return this.lonField;
-            }
-            set
-            {
-                this.lonField = value;
-            }
-        }
+        public double lon { get; set; }
     }
 
 
