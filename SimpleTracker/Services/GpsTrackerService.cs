@@ -48,7 +48,7 @@ namespace SimpleTracker.Services
             this.locations = new List<SimpleGpsLocation>();
 
             string databasePath = Path.Combine(
-                System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments), "SimpleGps.db");
+                System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments), SimpleGpsDatabase.DatabaseName);
 
             this.database = new SimpleGpsDatabase(databasePath);
 

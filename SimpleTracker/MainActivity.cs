@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.IO;
 using SQLite;
 using System.Text;
+using V7 = Android.Support.V7.Widget;
 
 namespace SimpleTracker
 {
@@ -28,19 +29,34 @@ namespace SimpleTracker
     {
         private const int GpsRequestCode = 100;
         private Connections.GpsTrackerServiceConnection connection;
-
-
+        private SQLiteConnection databaseConnection;
+        private Adapters.RoutesAdapter adapter;
 
         protected override void OnCreate(Bundle savedInstanceState)
         {
-            // How to access the service here ?
-            // I need to know this information in order to show some info on the screen and disable buttons.
-
             base.OnCreate(savedInstanceState);
             // Platform.Init(this, savedInstanceState);
             SetContentView(Resource.Layout.activity_main);
 
-            Android.Support.V7.Widget.Toolbar toolbar = FindViewById<Android.Support.V7.Widget.Toolbar>(Resource.Id.toolbar);
+            string databasePath = Path.Combine(
+                  System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments), Database.SimpleGpsDatabase.DatabaseName);
+            this.databaseConnection = new SQLiteConnection(databasePath);
+            
+            this.databaseConnection.CreateTable<Database.SimpleGpsLocation>();
+            this.databaseConnection.CreateTable<Database.SimpleGpsRoute>();
+
+            this.adapter = new Adapters.RoutesAdapter(new List<Database.SimpleGpsRoute>());
+
+            V7.RecyclerView routesList = FindViewById<V7.RecyclerView>(Resource.Id.routesListView);
+
+            adapter.ItemClick += Adapter_ItemClick;
+            routesList.SetLayoutManager(new V7.LinearLayoutManager(this));
+            routesList.SetAdapter(adapter);
+
+            // How to access the service here ?
+            // I need to know this information in order to show some info on the screen and disable buttons.
+
+            V7.Toolbar toolbar = FindViewById<V7.Toolbar>(Resource.Id.toolbar);
             SetSupportActionBar(toolbar);
 
             Button trackButton = FindViewById<Button>(Resource.Id.trackButton);
@@ -104,22 +120,16 @@ namespace SimpleTracker
 
         private void ShowRoutes_Click(object sender, EventArgs e)
         {
-            string databasePath = Path.Combine(
-                System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments), "SimpleGps.db");
-            var databaseConnection = new SQLiteConnection(databasePath);
+            //StringBuilder result = new StringBuilder();
+            var routes = this.databaseConnection.Table<Database.SimpleGpsRoute>().ToList();
+            adapter.Routes = routes;
 
-            databaseConnection.CreateTable<Database.SimpleGpsLocation>();
-            databaseConnection.CreateTable<Database.SimpleGpsRoute>();
+            adapter.NotifyItemRangeChanged(0, routes.Count);
+        }
 
-            StringBuilder result = new StringBuilder();
-            var routes = databaseConnection.Table<Database.SimpleGpsRoute>().ToList();
-            foreach (var route in routes)
-            {
-                int count = databaseConnection.Table<Database.SimpleGpsLocation>().Count(x => x.SimpleGpsRouteId == route.Id);
-                result.AppendLine($"{route.Id}. {route.Name} ({count})");
-            }
-
-            FindViewById<TextView>(Resource.Id.textView1).Text = result.ToString();
+        private void Adapter_ItemClick(object sender, int e)
+        {
+            Toast.MakeText(this, $"RouteId {e}", ToastLength.Short).Show();
         }
 
         //public override bool OnCreateOptionsMenu(IMenu menu)

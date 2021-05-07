@@ -17,6 +17,7 @@ namespace SimpleTracker.Database
 {
     public class SimpleGpsDatabase
     {
+        public const string DatabaseName = "SimpleGps.db";
         private readonly SQLiteConnection databaseConnection;
 
         public SimpleGpsDatabase(string path)
