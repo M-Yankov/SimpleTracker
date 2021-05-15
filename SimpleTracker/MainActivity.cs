@@ -212,6 +212,6 @@ namespace SimpleTracker
             }
         }
 
-        private bool IsServiceConnected => this.connection?.IsConnected == true;
+        private bool IsServiceConnected => this.connection?.Binder?.Service?.IsStarted == true;
     }
 }

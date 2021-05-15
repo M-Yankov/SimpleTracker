@@ -28,6 +28,7 @@ namespace SimpleTracker.Services
         private SimpleGpsLocationListener gpsListener;
         private NotificationManager notificationManager;
 
+        private Notification.Builder notification;
         private bool isStarted = false;
 
         private List<SimpleGpsLocation> locations;
@@ -38,6 +39,10 @@ namespace SimpleTracker.Services
 
         private SimpleGpsDatabase database;
         private int? currentRouteId;
+
+        private double distanceTraveled = 0;
+
+        public bool IsStarted => this.isStarted;
 
         public override void OnCreate()
         {
@@ -96,8 +101,8 @@ namespace SimpleTracker.Services
             this.notificationManager = null;
 
             this.gpsListener = null;
-
             this.Binder = null;
+            this.distanceTraveled = 0;
 
             if (this.locations?.Any() == true)
             {
@@ -124,13 +129,13 @@ namespace SimpleTracker.Services
             this.isStarted = true;
 
             // The constructor is deprecated, but it's necessary for old androids.
-            var notification = new Notification.Builder(this)
-               .SetContentTitle("Test")
-               .SetContentText("This is some text")
+            this.notification = new Notification.Builder(this)
+               .SetContentTitle("SimpleTracker recording...")
+               .SetContentText($"Distance {this.distanceTraveled / 1000:N3} km")
                .SetSmallIcon(Resource.Drawable.Image) // This is required, otherwise default system text and message are displayed
                .SetOngoing(true);
 
-            StartForeground(GpsNotificationId, notification.Build());
+            StartForeground(GpsNotificationId, this.notification.Build());
 
             SimpleGpsRoute route = new SimpleGpsRoute()
             { 
@@ -155,6 +160,7 @@ namespace SimpleTracker.Services
 
         private void Current_PositionChanged(object sender, PositionEventArgs e)
         {
+            // Check the speed and time properties
             this.locations.Add(new SimpleGpsLocation()
             {
                 Altitude = e.Location.Altitude,
@@ -167,7 +173,42 @@ namespace SimpleTracker.Services
             if (this.locations.Count >= 25)
             {
                 this.database.Add(this.locations);
+
+                float meters = 0;
+                for (int i = 0; i < this.locations.Count - 1; i++)
+                {
+                    SimpleGpsLocation previousPoint = this.locations[i];
+                    SimpleGpsLocation nextPoint = this.locations[i + 1];
+                    //float meters = new Location(LocationManager.GpsProvider)
+                    //{
+                    //    Altitude = previousPoint.Altitude,
+                    //    Latitude = previousPoint.Latitude,
+                    //    Longitude = previousPoint.Longitude,
+                    //}
+                    //    .DistanceTo(new Location(LocationManager.GpsProvider)
+                    //    {
+                    //        Altitude = nextPoint.Altitude,
+                    //        Latitude = nextPoint.Latitude,
+                    //        Longitude = nextPoint.Longitude,
+                    //    });
+
+
+                    float[] results = new float[3];
+                    Location.DistanceBetween(
+                        previousPoint.Latitude,
+                        previousPoint.Longitude,
+                        nextPoint.Latitude, 
+                        nextPoint.Longitude,
+                        results);
+
+                    meters += results[0];
+                }
+
+                distanceTraveled += meters;
+
                 this.locations = new List<SimpleGpsLocation>();
+                this.notification.SetContentText($"Distance {this.distanceTraveled / 1000:N3} km");
+                notificationManager.Notify(GpsNotificationId, this.notification.Build());
             }
 
 #if DEBUG
