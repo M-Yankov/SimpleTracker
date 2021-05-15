@@ -1,0 +1,26 @@
+### Tasks
+
+- Check why `run as` command is not working? people says it will work on non-rooted devices.
+  - https://stackoverflow.com/questions/9997976/android-pulling-sqlite-database-android-device/14686392
+  - https://stackoverflow.com/questions/13006315/how-to-access-data-data-folder-in-android-device
+  - https://stackoverflow.com/questions/37413667/run-as-could-not-set-capabilities-operation-not-permitted
+  - https://stackoverflow.com/questions/15558353/how-can-one-pull-the-private-data-of-ones-own-android-app
+  - https://stackoverflow.com/questions/1043322/why-do-i-get-access-denied-to-data-folder-when-using-adb
+- Compare Gpx files between original _From Strava_ and the one from my app
+  - How many points are different in count\
+    - **Almost the same count, if we take in advance that Strava missed some points.**
+    - 8979 - SimpleTracker 
+    - 8833 - Strava
+  - Compare file size
+    - **There is a difference ~1500KB Vs ~1000Kb, I think it comes from long date format saved from Simple Tracker**
+    - Verified the difference comes from number precision and date-time formats. 
+  - clean white spaces and new rows from exported gpx (xml) check what is needed for XML minification in C#
+    - **it reduces the file size by 10%**
+- Optimize the code
+  - The in-memory list should be cleaned when it's length reaches 50 or 100
+    - Automatically saved to database on service disconnected (destroyed)
+    - bulk save to database 10-50
+- UI changes
+  - Show paginating data, take 10-15 items per call
+  - Show routes in a separate window
+- Update Notification with distance/time and speed.
