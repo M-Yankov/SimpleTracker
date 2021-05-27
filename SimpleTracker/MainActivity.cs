@@ -1,25 +1,21 @@
 ﻿using System;
-using System.Threading.Tasks;
+using System.Collections.Generic;
 using System.Linq;
+
+using Android;
 using Android.App;
+
+using Android.Content;
 using Android.Content.PM;
 using Android.OS;
 using Android.Runtime;
-using Android.Support.Design.Widget;
+using Android.Support.V4.App;
 using Android.Support.V7.App;
 using Android.Views;
 using Android.Widget;
 
-// using Xamarin.Essentials;
+using SimpleTracker.Resources.layout;
 
-using Android.Locations;
-using Android.Content;
-using Android.Support.V4.App;
-using Android;
-using System.Collections.Generic;
-using System.IO;
-using SQLite;
-using System.Text;
 using V7 = Android.Support.V7.Widget;
 
 namespace SimpleTracker
@@ -29,7 +25,7 @@ namespace SimpleTracker
     {
         private const int GpsRequestCode = 100;
         private Connections.GpsTrackerServiceConnection connection;
-        private SQLiteConnection databaseConnection;
+        private Database.SimpleGpsDatabase database;
         private Adapters.RoutesAdapter adapter;
 
         protected override void OnCreate(Bundle savedInstanceState)
@@ -38,12 +34,7 @@ namespace SimpleTracker
             // Platform.Init(this, savedInstanceState);
             SetContentView(Resource.Layout.activity_main);
 
-            string databasePath = Path.Combine(
-                  System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments), Database.SimpleGpsDatabase.DatabaseName);
-            this.databaseConnection = new SQLiteConnection(databasePath);
-            
-            this.databaseConnection.CreateTable<Database.SimpleGpsLocation>();
-            this.databaseConnection.CreateTable<Database.SimpleGpsRoute>();
+            this.database = Database.SimpleGpsDatabase.Instance;
 
             this.adapter = new Adapters.RoutesAdapter(new List<Database.SimpleGpsRoute>());
 
@@ -69,12 +60,27 @@ namespace SimpleTracker
             Button routesButton = FindViewById<Button>(Resource.Id.routesButton);
             routesButton.Click += ShowRoutes_Click;
 
+            Button clearAllRoutes = FindViewById<Button>(Resource.Id.clearAllRoutesButton);
+            clearAllRoutes.Click += ClearAllRoutes_Click;
+
+            var b = routesButton.Background;
+            // new Android.Graphics.Drawables /
             // It's still null if application is closed from the system, but the service is running
             // Maybe I need to destroy the service in Ondestroy.
             if (this.connection == null)
             {
                 this.connection = new Connections.GpsTrackerServiceConnection(this);
             }
+        }
+
+        private void ClearAllRoutes_Click(object sender, EventArgs e)
+        {
+            int removedRoutesCount = adapter.ItemCount;
+
+            this.database.ClearAllRoutes();
+
+            adapter.Routes = new List<Database.SimpleGpsRoute>();
+            adapter.NotifyItemRangeRemoved(0, removedRoutesCount);
         }
 
         protected override void OnResume()
@@ -120,8 +126,7 @@ namespace SimpleTracker
 
         private void ShowRoutes_Click(object sender, EventArgs e)
         {
-            //StringBuilder result = new StringBuilder();
-            var routes = this.databaseConnection.Table<Database.SimpleGpsRoute>().ToList();
+            var routes = this.database.GetAllRoutes();
             adapter.Routes = routes;
 
             adapter.NotifyItemRangeChanged(0, routes.Count);
@@ -130,6 +135,9 @@ namespace SimpleTracker
         private void Adapter_ItemClick(object sender, int e)
         {
             Toast.MakeText(this, $"RouteId {e}", ToastLength.Short).Show();
+
+            var activity = new Intent(this, typeof(RouteDetailsActivity));
+            StartActivity(activity);
         }
 
         //public override bool OnCreateOptionsMenu(IMenu menu)

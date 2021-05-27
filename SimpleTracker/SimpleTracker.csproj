@@ -37,7 +37,7 @@
     <WarningLevel>4</WarningLevel>
     <AndroidUseSharedRuntime>True</AndroidUseSharedRuntime>
     <AndroidLinkMode>None</AndroidLinkMode>
-    <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
+    <EmbedAssembliesIntoApk>false</EmbedAssembliesIntoApk>
     <AotAssemblies>false</AotAssemblies>
     <EnableLLVM>false</EnableLLVM>
     <AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
@@ -72,6 +72,7 @@
     <Compile Include="Database\SimpleGpsDatabase.cs" />
     <Compile Include="Database\SimpleGpsLocation.cs" />
     <Compile Include="Database\SimpleGpsRoute.cs" />
+    <Compile Include="Resources\layout\RouteDetailsActivity.cs" />
     <Compile Include="Services\GpsTrackerService.cs" />
     <Compile Include="SimpleGpsLocationListener.cs" />
     <Compile Include="MainActivity.cs" />
@@ -133,6 +134,16 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\layout\route_partial.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\route_details.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\app_bar.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
