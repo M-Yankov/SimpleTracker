@@ -26,9 +26,10 @@ namespace GpxCreator
             databaseConnection.CreateTable<SimpleGpsRoute>();
 
             var routes = databaseConnection.Table<SimpleGpsRoute>()
+                .Where(x => x.Id >= 26)
                 .ToList();
 
-            for (int i = routes.Count - 1; i > routes.Count - 3; i--)
+            for (int i = 0; i < routes.Count; i++)
             {
                 SimpleGpsRoute item = routes[i];
                 IEnumerable<gpxTrkTrkpt> points = databaseConnection.Table<SimpleGpsLocation>().Where(x => x.SimpleGpsRouteId == item.Id)

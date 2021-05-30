@@ -52,11 +52,7 @@ namespace SimpleTracker.Services
             this.gpsListener = new SimpleGpsLocationListener();
             this.locations = new List<SimpleGpsLocation>();
 
-            string databasePath = Path.Combine(
-                System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments), SimpleGpsDatabase.DatabaseName);
-
-            this.database = new SimpleGpsDatabase(databasePath);
-
+            this.database = SimpleGpsDatabase.Instance;
 
             base.OnCreate();
         }
@@ -179,19 +175,6 @@ namespace SimpleTracker.Services
                 {
                     SimpleGpsLocation previousPoint = this.locations[i];
                     SimpleGpsLocation nextPoint = this.locations[i + 1];
-                    //float meters = new Location(LocationManager.GpsProvider)
-                    //{
-                    //    Altitude = previousPoint.Altitude,
-                    //    Latitude = previousPoint.Latitude,
-                    //    Longitude = previousPoint.Longitude,
-                    //}
-                    //    .DistanceTo(new Location(LocationManager.GpsProvider)
-                    //    {
-                    //        Altitude = nextPoint.Altitude,
-                    //        Latitude = nextPoint.Latitude,
-                    //        Longitude = nextPoint.Longitude,
-                    //    });
-
 
                     float[] results = new float[3];
                     Location.DistanceBetween(
