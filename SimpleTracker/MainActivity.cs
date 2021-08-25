@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 
 using Android;
@@ -25,24 +24,12 @@ namespace SimpleTracker
     {
         private const int GpsRequestCode = 100;
         private Connections.GpsTrackerServiceConnection connection;
-        private Database.SimpleGpsDatabase database;
-        private Adapters.RoutesAdapter adapter;
 
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
             // Platform.Init(this, savedInstanceState);
             SetContentView(Resource.Layout.activity_main);
-
-            this.database = Database.SimpleGpsDatabase.Instance;
-
-            this.adapter = new Adapters.RoutesAdapter(new List<Database.SimpleGpsRoute>());
-
-            V7.RecyclerView routesList = FindViewById<V7.RecyclerView>(Resource.Id.routesListView);
-
-            adapter.ItemClick += Adapter_ItemClick;
-            routesList.SetLayoutManager(new V7.LinearLayoutManager(this));
-            routesList.SetAdapter(adapter);
 
             // How to access the service here ?
             // I need to know this information in order to show some info on the screen and disable buttons.
@@ -60,9 +47,6 @@ namespace SimpleTracker
             Button routesButton = FindViewById<Button>(Resource.Id.routesButton);
             routesButton.Click += ShowRoutes_Click;
 
-            Button clearAllRoutes = FindViewById<Button>(Resource.Id.clearAllRoutesButton);
-            clearAllRoutes.Click += ClearAllRoutes_Click;
-
             var b = routesButton.Background;
             // new Android.Graphics.Drawables /
             // It's still null if application is closed from the system, but the service is running
@@ -71,16 +55,6 @@ namespace SimpleTracker
             {
                 this.connection = new Connections.GpsTrackerServiceConnection(this);
             }
-        }
-
-        private void ClearAllRoutes_Click(object sender, EventArgs e)
-        {
-            int removedRoutesCount = adapter.ItemCount;
-
-            this.database.ClearAllRoutes();
-
-            adapter.Routes = new List<Database.SimpleGpsRoute>();
-            adapter.NotifyItemRangeRemoved(0, removedRoutesCount);
         }
 
         protected override void OnResume()
@@ -126,17 +100,7 @@ namespace SimpleTracker
 
         private void ShowRoutes_Click(object sender, EventArgs e)
         {
-            var routes = this.database.GetAllRoutes();
-            adapter.Routes = routes;
-
-            adapter.NotifyItemRangeChanged(0, routes.Count);
-        }
-
-        private void Adapter_ItemClick(object sender, int e)
-        {
-            Toast.MakeText(this, $"RouteId {e}", ToastLength.Short).Show();
-
-            var activity = new Intent(this, typeof(RouteDetailsActivity));
+            var activity = new Intent(this, typeof(RouteListActivity));
             StartActivity(activity);
         }
 

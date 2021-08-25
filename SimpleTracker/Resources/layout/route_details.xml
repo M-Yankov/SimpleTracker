@@ -13,7 +13,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Route name when its' too long"
+            android:text="Route name vey very very very when its' too long"
             android:textAlignment="center"
             android:textSize="30dp"
             />
@@ -49,6 +49,7 @@
             android:layout_height="wrap_content"
             android:text="Delete"
             android:id="@+id/delete_route_button"
+            android:layout_marginLeft="5dp"
             />
     </LinearLayout>
 

@@ -66,23 +66,10 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/routesButton"
                 android:text="@string/button_show_routes" />
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:minHeight="25dp"
-                android:minWidth="25dp"
-                android:id="@+id/clearAllRoutesButton"
-                android:text="@string/button_clear_routes" />
+            
         </LinearLayout>
 
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-            <android.support.v7.widget.RecyclerView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/routesListView"/>
-        </RelativeLayout>
+        
     </LinearLayout>
     
 </LinearLayout>

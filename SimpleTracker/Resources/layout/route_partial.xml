@@ -12,6 +12,7 @@
         android:visibility="invisible"
         android:id="@+id/routeIdTextView"
         />
+  
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -20,9 +21,17 @@
         android:id="@+id/routeNameTextView"
         android:text="RouteN"
         />
+
+      <View
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        />
+
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:textAlignment="viewEnd"
         android:text="Export"
         android:id="@+id/exportRouteButton"/>
 </LinearLayout>

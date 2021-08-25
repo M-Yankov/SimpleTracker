@@ -26,7 +26,6 @@ namespace GpxCreator
             databaseConnection.CreateTable<SimpleGpsRoute>();
 
             var routes = databaseConnection.Table<SimpleGpsRoute>()
-                .Where(x => x.Id >= 26)
                 .ToList();
 
             for (int i = 0; i < routes.Count; i++)

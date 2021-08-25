@@ -4415,19 +4415,22 @@ namespace SimpleTracker
 			public const int route_details = 2131427384;
 			
 			// aapt resource value: 0x7F0B0039
-			public const int route_partial = 2131427385;
+			public const int route_list = 2131427385;
 			
 			// aapt resource value: 0x7F0B003A
-			public const int select_dialog_item_material = 2131427386;
+			public const int route_partial = 2131427386;
 			
 			// aapt resource value: 0x7F0B003B
-			public const int select_dialog_multichoice_material = 2131427387;
+			public const int select_dialog_item_material = 2131427387;
 			
 			// aapt resource value: 0x7F0B003C
-			public const int select_dialog_singlechoice_material = 2131427388;
+			public const int select_dialog_multichoice_material = 2131427388;
 			
 			// aapt resource value: 0x7F0B003D
-			public const int support_simple_spinner_dropdown_item = 2131427389;
+			public const int select_dialog_singlechoice_material = 2131427389;
+			
+			// aapt resource value: 0x7F0B003E
+			public const int support_simple_spinner_dropdown_item = 2131427390;
 			
 			static Layout()
 			{
