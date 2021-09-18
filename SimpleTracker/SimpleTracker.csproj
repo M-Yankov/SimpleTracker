@@ -84,6 +84,7 @@
     <Compile Include="Database\SimpleGpsLocation.cs" />
     <Compile Include="Database\SimpleGpsRoute.cs" />
     <Compile Include="Resources\layout\RouteDetailsActivity.cs" />
+    <Compile Include="Resources\layout\RouteListActivity.cs" />
     <Compile Include="Services\GpsTrackerService.cs" />
     <Compile Include="SimpleGpsLocationListener.cs" />
     <Compile Include="MainActivity.cs" />
@@ -153,6 +154,11 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\layout\app_bar.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\route_list.xml">
       <SubType>Designer</SubType>
     </AndroidResource>
   </ItemGroup>

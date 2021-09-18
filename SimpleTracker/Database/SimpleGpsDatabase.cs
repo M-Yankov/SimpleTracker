@@ -79,7 +79,32 @@ namespace SimpleTracker.Database
 
         public List<SimpleGpsRoute> GetAllRoutes()
         {
-            return this.databaseConnection.Table<SimpleGpsRoute>().ToList();
+            return this.databaseConnection
+                .Table<SimpleGpsRoute>()
+                .ToList();
+        }
+
+        public List<SimpleGpsLocation> GetPath(int routeId) => 
+            this.databaseConnection
+                .Table<SimpleGpsLocation>()
+                .Where(x => x.SimpleGpsRouteId == routeId)
+                .ToList();
+
+        public SimpleGpsRoute GetRoute(int routeId) =>
+            this.databaseConnection
+                .Table<SimpleGpsRoute>()
+                .FirstOrDefault(x => x.Id == routeId);
+
+        public void DeleteRouteWithPath(int routeId)
+        {
+            var list = GetPath(routeId);
+            foreach (var item in list)
+            {
+                this.databaseConnection.Delete(item);
+            }
+
+            var route = GetRoute(routeId);
+            this.databaseConnection.Delete(route);
         }
     }
 }

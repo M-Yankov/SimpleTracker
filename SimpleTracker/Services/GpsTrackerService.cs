@@ -176,6 +176,7 @@ namespace SimpleTracker.Services
                     SimpleGpsLocation previousPoint = this.locations[i];
                     SimpleGpsLocation nextPoint = this.locations[i + 1];
 
+                    // Extract this point in helper class with method
                     float[] results = new float[3];
                     Location.DistanceBetween(
                         previousPoint.Latitude,
