@@ -26,10 +26,8 @@ namespace SimpleTracker.Resources.layout
             SetSupportActionBar(toolbar);
 
             this.database = Database.SimpleGpsDatabase.Instance;
-            List<Database.SimpleGpsRoute> routes = this.database.GetAllRoutes();
-            this.adapter = new Adapters.RoutesAdapter(routes);
+            this.adapter = new Adapters.RoutesAdapter(new List<Database.SimpleGpsRoute>());
 
-            adapter.NotifyItemRangeChanged(0, routes.Count);
 
             V7.RecyclerView routesList = FindViewById<V7.RecyclerView>(Resource.Id.routesListView);
 
@@ -43,11 +41,24 @@ namespace SimpleTracker.Resources.layout
             clearAllRoutes.Click += ClearAllRoutes_Click;
         }
 
-        private void Adapter_ItemClick(object sender, int e)
+        protected override void OnResume()
         {
-            Toast.MakeText(this, $"RouteId {e}", ToastLength.Short).Show();
+            base.OnResume();
+
+            List<Database.SimpleGpsRoute> routes = this.database.GetAllRoutes();
+            this.adapter.Routes = routes;
+
+            adapter.NotifyDataSetChanged();
+        }
+
+        private void Adapter_ItemClick(object sender, int id)
+        {
+            // Toast.MakeText(this, $"RouteId {id}", ToastLength.Short).Show();
 
             var activity = new Intent(this, typeof(RouteDetailsActivity));
+            Bundle bundle = new Bundle();
+            bundle.PutInt("id", id);
+            activity.PutExtras(bundle);
             StartActivity(activity);
         }
 
