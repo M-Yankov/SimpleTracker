@@ -80,9 +80,6 @@
     <Compile Include="Adapters\RoutesViewHolder.cs" />
     <Compile Include="Binders\GpsTrackerServiceBinder.cs" />
     <Compile Include="Connections\GpsTrackerServiceConnection.cs" />
-    <Compile Include="Database\SimpleGpsDatabase.cs" />
-    <Compile Include="Database\SimpleGpsLocation.cs" />
-    <Compile Include="Database\SimpleGpsRoute.cs" />
     <Compile Include="Resources\layout\RouteDetailsActivity.cs" />
     <Compile Include="Resources\layout\RouteListActivity.cs" />
     <Compile Include="Services\GpsTrackerService.cs" />
@@ -161,6 +158,16 @@
     <AndroidResource Include="Resources\layout\route_list.xml">
       <SubType>Designer</SubType>
     </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SimpleDatabase\SimpleDatabase.csproj">
+      <Project>{7b8c4425-bbd3-40cc-92e8-67c1017f7680}</Project>
+      <Name>SimpleDatabase</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\StravaIntegrator\StravaIntegrator.csproj">
+      <Project>{1f1081ce-7539-47d0-a7f1-d308f87b2589}</Project>
+      <Name>StravaIntegrator</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

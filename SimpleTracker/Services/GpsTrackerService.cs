@@ -7,7 +7,7 @@ using Android.Views;
 using Android.Widget;
 
 using SimpleTracker.Binders;
-using SimpleTracker.Database;
+using SimpleDatabase;
 
 using System;
 using System.Collections.Generic;

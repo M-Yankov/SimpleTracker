@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using SimpleDatabase;
 
 using Android.App;
 using Android.Content;
@@ -14,7 +15,7 @@ namespace SimpleTracker.Resources.layout
     [Activity(Label = "@string/app_name", Theme = "@style/AppTheme.NoActionBar")]
     public class RouteListActivity : AppCompatActivity
     {
-        private Database.SimpleGpsDatabase database;
+        private SimpleGpsDatabase database;
         private Adapters.RoutesAdapter adapter;
 
         protected override void OnCreate(Bundle savedInstanceState)
@@ -25,8 +26,8 @@ namespace SimpleTracker.Resources.layout
             V7.Toolbar toolbar = FindViewById<V7.Toolbar>(Resource.Id.toolbar);
             SetSupportActionBar(toolbar);
 
-            this.database = Database.SimpleGpsDatabase.Instance;
-            this.adapter = new Adapters.RoutesAdapter(new List<Database.SimpleGpsRoute>());
+            this.database = SimpleGpsDatabase.Instance;
+            this.adapter = new Adapters.RoutesAdapter(new List<SimpleGpsRoute>());
 
 
             V7.RecyclerView routesList = FindViewById<V7.RecyclerView>(Resource.Id.routesListView);
@@ -45,7 +46,7 @@ namespace SimpleTracker.Resources.layout
         {
             base.OnResume();
 
-            List<Database.SimpleGpsRoute> routes = this.database.GetAllRoutes();
+            List<SimpleGpsRoute> routes = this.database.GetAllRoutes();
             this.adapter.Routes = routes;
 
             adapter.NotifyDataSetChanged();
@@ -68,7 +69,7 @@ namespace SimpleTracker.Resources.layout
 
             this.database.ClearAllRoutes();
 
-            adapter.Routes = new List<Database.SimpleGpsRoute>();
+            adapter.Routes = new List<SimpleGpsRoute>();
             adapter.NotifyItemRangeRemoved(0, removedRoutesCount);
         }
     }

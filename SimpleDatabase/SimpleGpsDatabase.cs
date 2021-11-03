@@ -14,7 +14,7 @@ using System.Text;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace SimpleTracker.Database
+namespace SimpleDatabase
 {
     public class SimpleGpsDatabase
     {
@@ -84,7 +84,7 @@ namespace SimpleTracker.Database
                 .ToList();
         }
 
-        public List<SimpleGpsLocation> GetPath(int routeId) => 
+        public List<SimpleGpsLocation> GetRouteLocations(int routeId) => 
             this.databaseConnection
                 .Table<SimpleGpsLocation>()
                 .Where(x => x.SimpleGpsRouteId == routeId)
@@ -97,7 +97,7 @@ namespace SimpleTracker.Database
 
         public void DeleteRouteWithPath(int routeId)
         {
-            var list = GetPath(routeId);
+            var list = GetRouteLocations(routeId);
             foreach (var item in list)
             {
                 this.databaseConnection.Delete(item);

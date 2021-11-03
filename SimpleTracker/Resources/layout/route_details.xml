@@ -10,7 +10,6 @@
     <include
         layout="@layout/app_bar" />
 
-
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -106,6 +105,30 @@
                     android:text="Delete"
                     android:id="@+id/delete_route_button"
                     android:layout_marginLeft="5dp"
+                    />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="20dp">
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Publish"
+                    android:backgroundTint="#fc4c02"
+                    android:textColor="#fff"
+                    android:id="@+id/strava_publish_route_button"
+                    android:layout_marginLeft="5dp"
+                    />
+<!--https://developer.android.com/guide/topics/resources/color-list-resource-->
+                <android.support.v7.widget.AppCompatButton
+                    android:id="@+id/strava_view_activity_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="View activity"
+                    android:backgroundTint="#fc4c02"
                     />
             </LinearLayout>
         </LinearLayout>

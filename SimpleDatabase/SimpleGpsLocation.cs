@@ -12,7 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace SimpleTracker.Database
+namespace SimpleDatabase
 {
     public class SimpleGpsLocation
     {

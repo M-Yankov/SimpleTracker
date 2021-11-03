@@ -12,7 +12,7 @@ using Android.Widget;
 
 using Java.Lang;
 
-using SimpleTracker.Database;
+using SimpleDatabase;
 
 using V7 = Android.Support.V7.Widget;
 
@@ -21,21 +21,21 @@ namespace SimpleTracker.Resources.layout
     [Activity(Label = "@string/app_name", Theme = "@style/AppTheme.NoActionBar")]
     public class RouteDetailsActivity : AppCompatActivity
     {
-        private Database.SimpleGpsDatabase database;
+        private SimpleGpsDatabase database;
 
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
             SetContentView(Resource.Layout.route_details);
 
-            this.database = Database.SimpleGpsDatabase.Instance;
+            this.database = SimpleGpsDatabase.Instance;
 
             V7.Toolbar toolbar = FindViewById<V7.Toolbar>(Resource.Id.toolbar);
             SetSupportActionBar(toolbar);
 
             int id = Intent.Extras.GetInt("id");
 
-            List<SimpleGpsLocation> gpsLocations = this.database.GetPath(id);
+            List<SimpleGpsLocation> gpsLocations = this.database.GetRouteLocations(id);
             SimpleGpsRoute route = this.database.GetRoute(id);
 
             // statistics calculated may not be accurate, due to incorrect locations provided by GPS provider
@@ -53,80 +53,80 @@ namespace SimpleTracker.Resources.layout
             if (gpsLocations.Count > 1)
             {
                 for (int i = 0; i < gpsLocations.Count - 1; i++)
-            {
-                SimpleGpsLocation previousPoint = gpsLocations[i];
-                SimpleGpsLocation nextPoint = gpsLocations[i + 1];
-
-                float[] results = new float[3];
-                Location.DistanceBetween(
-                    previousPoint.Latitude,
-                    previousPoint.Longitude,
-                    nextPoint.Latitude,
-                    nextPoint.Longitude,
-                    results);
-
-                distanceInMeters += results[0];
-
-                ElevationDirection elevationDirection;
-
-                double higherPoint;
-                double lowerPoint;
-                
-                if (previousPoint.Altitude > nextPoint.Altitude)
                 {
-                    higherPoint = previousPoint.Altitude;
-                    lowerPoint = nextPoint.Altitude;
-                    elevationDirection = ElevationDirection.Descending;
+                    SimpleGpsLocation previousPoint = gpsLocations[i];
+                    SimpleGpsLocation nextPoint = gpsLocations[i + 1];
+
+                    float[] results = new float[3];
+                    Location.DistanceBetween(
+                        previousPoint.Latitude,
+                        previousPoint.Longitude,
+                        nextPoint.Latitude,
+                        nextPoint.Longitude,
+                        results);
+
+                    distanceInMeters += results[0];
+
+                    ElevationDirection elevationDirection;
+
+                    double higherPoint;
+                    double lowerPoint;
+
+                    if (previousPoint.Altitude > nextPoint.Altitude)
+                    {
+                        higherPoint = previousPoint.Altitude;
+                        lowerPoint = nextPoint.Altitude;
+                        elevationDirection = ElevationDirection.Descending;
+                    }
+                    else
+                    {
+                        lowerPoint = previousPoint.Altitude;
+                        higherPoint = nextPoint.Altitude;
+                        elevationDirection = ElevationDirection.Climbing;
+                    }
+
+                    if (higherPoint > maxElevation)
+                    {
+                        maxElevation = higherPoint;
+                    }
+
+                    if (lowerPoint < minElevation)
+                    {
+                        minElevation = lowerPoint;
+                    }
+
+                    switch (elevationDirection)
+                    {
+                        case ElevationDirection.Climbing:
+                            climbing += higherPoint - lowerPoint;
+                            break;
+                        case ElevationDirection.Descending:
+                            descending += lowerPoint - higherPoint;
+                            break;
+                        case ElevationDirection.None:
+                        default:
+                            break;
+                    }
+
+                    // S = V * T
+                    // distance = speed * time 
+                    // 3km/h * 2 (h) = 6 km
+
+                    // speed = distance / time
+                    // 3km/h = 6km / 2
+
+                    long elapsedTicks = nextPoint.DateTime.Ticks - previousPoint.DateTime.Ticks;
+                    TimeSpan timeInterval = new TimeSpan(elapsedTicks);
+                    float distaneBetweenPoints = results[0];
+
+                    double speed = (distaneBetweenPoints / 1000.0) / (timeInterval.TotalSeconds / 3600.0);
+                    speeds.Add(speed);
+
+                    if (speed > maxSpeed)
+                    {
+                        maxSpeed = speed;
+                    }
                 }
-                else
-                {
-                    lowerPoint = previousPoint.Altitude;
-                    higherPoint = nextPoint.Altitude;
-                    elevationDirection = ElevationDirection.Climbing;
-                }
-
-                if (higherPoint > maxElevation)
-                {
-                    maxElevation = higherPoint;
-                }
-
-                if (lowerPoint < minElevation)
-                {
-                    minElevation = lowerPoint;
-                }
-
-                switch (elevationDirection)
-                {
-                    case ElevationDirection.Climbing:
-                        climbing += higherPoint - lowerPoint;
-                        break;
-                    case ElevationDirection.Descending:
-                        descending += lowerPoint - higherPoint;
-                        break;
-                    case ElevationDirection.None:
-                    default:
-                        break;
-                }
-
-                // S = V * T
-                // distance = speed * time 
-                // 3km/h * 2 (h) = 6 km
-
-                // speed = distance / time
-                // 3km/h = 6km / 2
-
-                long elapsedTicks = nextPoint.DateTime.Ticks - previousPoint.DateTime.Ticks;
-                TimeSpan timeInterval = new TimeSpan(elapsedTicks);
-                float distaneBetweenPoints = results[0];
-
-                double speed = (distaneBetweenPoints / 1000.0) / (timeInterval.TotalSeconds / 3600.0);
-                speeds.Add(speed);
-
-                if (speed > maxSpeed)
-                {
-                    maxSpeed = speed;
-                }
-            }
             }
 
             double average = speeds.Any() ? speeds.Average() : 0;
@@ -150,6 +150,19 @@ namespace SimpleTracker.Resources.layout
             FindViewById<TextView>(Resource.Id.routeDetailsMaxSpeed).Text = $"Max speed: { maxSpeed:F0} km/h.";
             FindViewById<TextView>(Resource.Id.routeDetailsId).Text = $"{id}";
 
+            if (route.StravaActivityId.HasValue)
+            {
+                FindViewById<Button>(Resource.Id.strava_view_activity_button).Visibility = Android.Views.ViewStates.Visible;
+                FindViewById<Button>(Resource.Id.strava_publish_route_button).Visibility = Android.Views.ViewStates.Gone;
+
+            }
+            else
+            {
+                FindViewById<Button>(Resource.Id.strava_view_activity_button).Visibility = Android.Views.ViewStates.Gone;
+                FindViewById<Button>(Resource.Id.strava_publish_route_button).Visibility = Android.Views.ViewStates.Visible;
+                FindViewById<Button>(Resource.Id.strava_publish_route_button).Click += PublishToStrava_Click;
+            }
+
             FindViewById<Button>(Resource.Id.delete_route_button).Click += DeleteRoute_Click;
         }
 
@@ -161,6 +174,16 @@ namespace SimpleTracker.Resources.layout
             Toast.MakeText(this, $"Route deleted!", ToastLength.Short).Show();
 
             Finish();
+        }
+
+        private void PublishToStrava_Click(object sender, EventArgs e)
+        {
+            int id = Intent.Extras.GetInt("id");
+
+            List<SimpleGpsLocation> gpsLocations = this.database.GetRouteLocations(id);
+            SimpleGpsRoute route = this.database.GetRoute(id);
+
+            GpxExporter.Export(gpsLocations, route.Name);
         }
     }
 

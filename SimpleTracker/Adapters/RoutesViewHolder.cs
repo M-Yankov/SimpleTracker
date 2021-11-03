@@ -2,6 +2,8 @@
 using Android.Views;
 using Android.Widget;
 
+using SimpleDatabase;
+
 using System;
 
 namespace SimpleTracker.Adapters
@@ -24,7 +26,7 @@ namespace SimpleTracker.Adapters
             };
         }
 
-        public void SetData(Database.SimpleGpsRoute route)
+        public void SetData(SimpleGpsRoute route)
         {
             this.routeIdElement.Text = $"{route.Id}";
             this.routeNameElement.Text = route.Name;
