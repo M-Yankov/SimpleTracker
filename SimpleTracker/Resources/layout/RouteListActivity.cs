@@ -9,6 +9,7 @@ using Android.Support.V7.App;
 using Android.Widget;
 
 using V7 = Android.Support.V7.Widget;
+using Android.Views;
 
 namespace SimpleTracker.Resources.layout
 {
@@ -50,6 +51,12 @@ namespace SimpleTracker.Resources.layout
             this.adapter.Routes = routes;
 
             adapter.NotifyDataSetChanged();
+        }
+
+        public override bool OnCreateOptionsMenu(IMenu menu)
+        {
+            MenuInflater.Inflate(Resource.Menu.menu_main, menu);
+            return true;
         }
 
         private void Adapter_ItemClick(object sender, int id)

@@ -13,6 +13,8 @@ using Android.Support.V7.App;
 using Android.Views;
 using Android.Widget;
 
+using Google.Android.Material.Snackbar;
+
 using SimpleTracker.Resources.layout;
 
 using V7 = Android.Support.V7.Widget;
@@ -104,17 +106,19 @@ namespace SimpleTracker
             StartActivity(activity);
         }
 
-        //public override bool OnCreateOptionsMenu(IMenu menu)
-        //{
-        //    MenuInflater.Inflate(Resource.Menu.menu_main, menu);
-        //    return true;
-        //}
+        public override bool OnCreateOptionsMenu(IMenu menu)
+        {
+            MenuInflater.Inflate(Resource.Menu.menu_main, menu);
+
+            return true;
+        }
 
         public override bool OnOptionsItemSelected(IMenuItem item)
         {
             int id = item.ItemId;
             if (id == Resource.Id.action_settings)
             {
+                Snackbar.Make(FindViewById<Button>(Resource.Id.trackButton), id.ToString(), Snackbar.LengthShort).Show();
                 return true;
             }
 

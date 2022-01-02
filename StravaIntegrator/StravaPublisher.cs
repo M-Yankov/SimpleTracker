@@ -4,7 +4,6 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Xml;
 using System.Xml.Serialization;
 
 using SimpleDatabase;
@@ -25,7 +24,7 @@ namespace StravaIntegrator
                 AutomaticDecompression = DecompressionMethods.Deflate | DecompressionMethods.GZip,
             };
 
-            var h = new HttpClient(handler);
+            var httpClient = new HttpClient(handler);
 
             var msg = new HttpRequestMessage(HttpMethod.Post, "https://www.strava.com/api/v3/uploads");
             var content = new MultipartFormDataContent();
@@ -42,7 +41,7 @@ namespace StravaIntegrator
             string accessToken = "---";
             msg.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
-            if (h.SendAsync(msg).GetAwaiter().GetResult() is AndroidHttpResponseMessage res)
+            if (httpClient.SendAsync(msg).GetAwaiter().GetResult() is AndroidHttpResponseMessage res)
             {
                 string response = res.Content.ReadAsStringAsync().GetAwaiter().GetResult();
             }

@@ -9,13 +9,9 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:showIn="@layout/activity_main">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-        <include
-            layout="@layout/app_bar"
-            />
-    </LinearLayout>
+    <include
+        layout="@layout/app_bar"
+        />
         
     <LinearLayout
         android:layout_width="match_parent"

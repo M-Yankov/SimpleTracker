@@ -1,14 +1,11 @@
-﻿
-
-using SQLite;
+﻿using SQLite;
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Diagnostics;
 
 namespace GpxCreator.DatabaseCopy
 {
+    [DebuggerDisplay("Lat = {Latitude}, Lon = {Longitude}")]
     public class SimpleGpsLocation
     {
         [PrimaryKey, AutoIncrement]

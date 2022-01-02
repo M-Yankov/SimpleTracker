@@ -183,7 +183,7 @@ namespace SimpleTracker.Resources.layout
             List<SimpleGpsLocation> gpsLocations = this.database.GetRouteLocations(id);
             SimpleGpsRoute route = this.database.GetRoute(id);
 
-            GpxExporter.Export(gpsLocations, route.Name);
+            // StravaIntegrator.StravaPublisher.Publish(gpsLocations, route.Name);
         }
     }
 
