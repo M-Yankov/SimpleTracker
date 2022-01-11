@@ -76,12 +76,17 @@
     <Reference Include="System.Numerics.Vectors" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Activities\BaseApplicationActivity.cs" />
     <Compile Include="Adapters\RoutesAdapter.cs" />
     <Compile Include="Adapters\RoutesViewHolder.cs" />
     <Compile Include="Binders\GpsTrackerServiceBinder.cs" />
+    <Compile Include="Common\ApplicationSecrets.cs" />
+    <Compile Include="Common\Utilities.cs" />
     <Compile Include="Connections\GpsTrackerServiceConnection.cs" />
     <Compile Include="Resources\layout\RouteDetailsActivity.cs" />
     <Compile Include="Resources\layout\RouteListActivity.cs" />
+    <Compile Include="Resources\layout\SettingsActivity.cs" />
+    <Compile Include="Resources\layout\StravaAuthenticatedActivity.cs" />
     <Compile Include="Services\GpsTrackerService.cs" />
     <Compile Include="SimpleGpsLocationListener.cs" />
     <Compile Include="MainActivity.cs" />
@@ -139,9 +144,6 @@
     <AndroidResource Include="Resources\drawable\favicon.ico" />
   </ItemGroup>
   <ItemGroup>
-    <AndroidResource Include="Resources\drawable\Image.png" />
-  </ItemGroup>
-  <ItemGroup>
     <AndroidResource Include="Resources\layout\route_partial.xml" />
   </ItemGroup>
   <ItemGroup>
@@ -173,6 +175,14 @@
     <AndroidResource Include="Resources\layout\settings.xml">
       <SubType>Designer</SubType>
     </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\strava_authenticated.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\Image.png" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

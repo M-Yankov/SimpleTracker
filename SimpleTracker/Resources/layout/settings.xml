@@ -4,13 +4,40 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/title_strava"
-        android:textSize="25sp"
-        android:textAlignment="center"
-        android:textColor="@color/stravaMain"
-        />
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:id="@+id/settings_strava_panel"
+        >
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/title_strava"
+            android:textSize="25sp"
+            android:textAlignment="center"
+            android:textColor="@color/stravaMain"
+            />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/strava_authorize_button"
+            android:background="@color/stravaMain"
+            android:textColor="@android:color/white"
+            android:textSize="25sp"
+            android:text="Authorize Strava"
+            android:layout_gravity="center"
+            />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/strava_text_na"
+            android:textColor="@android:color/holo_red_dark"
+            android:text="Strava is not installed"
+            android:visibility="invisible"
+            />
+    </LinearLayout>
 </LinearLayout>
