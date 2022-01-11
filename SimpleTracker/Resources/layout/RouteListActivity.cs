@@ -10,11 +10,12 @@ using Android.Widget;
 
 using V7 = Android.Support.V7.Widget;
 using Android.Views;
+using SimpleTracker.Activities;
 
 namespace SimpleTracker.Resources.layout
 {
     [Activity(Label = "@string/app_name", Theme = "@style/AppTheme.NoActionBar")]
-    public class RouteListActivity : AppCompatActivity
+    public class RouteListActivity : BaseApplicationActivity
     {
         private SimpleGpsDatabase database;
         private Adapters.RoutesAdapter adapter;
@@ -51,12 +52,6 @@ namespace SimpleTracker.Resources.layout
             this.adapter.Routes = routes;
 
             adapter.NotifyDataSetChanged();
-        }
-
-        public override bool OnCreateOptionsMenu(IMenu menu)
-        {
-            MenuInflater.Inflate(Resource.Menu.menu_main, menu);
-            return true;
         }
 
         private void Adapter_ItemClick(object sender, int id)

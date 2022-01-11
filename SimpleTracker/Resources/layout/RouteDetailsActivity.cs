@@ -14,12 +14,14 @@ using Java.Lang;
 
 using SimpleDatabase;
 
+using SimpleTracker.Activities;
+
 using V7 = Android.Support.V7.Widget;
 
 namespace SimpleTracker.Resources.layout
 {
     [Activity(Label = "@string/app_name", Theme = "@style/AppTheme.NoActionBar")]
-    public class RouteDetailsActivity : AppCompatActivity
+    public class RouteDetailsActivity : BaseApplicationActivity
     {
         private SimpleGpsDatabase database;
 

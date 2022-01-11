@@ -15,6 +15,7 @@ using Android.Widget;
 
 using Google.Android.Material.Snackbar;
 
+using SimpleTracker.Activities;
 using SimpleTracker.Resources.layout;
 
 using V7 = Android.Support.V7.Widget;
@@ -22,7 +23,7 @@ using V7 = Android.Support.V7.Widget;
 namespace SimpleTracker
 {
     [Activity(Label = "@string/app_name", Theme = "@style/AppTheme.NoActionBar", MainLauncher = true)]
-    public class MainActivity : AppCompatActivity
+    public class MainActivity : BaseApplicationActivity
     {
         private const int GpsRequestCode = 100;
         private Connections.GpsTrackerServiceConnection connection;
@@ -104,25 +105,6 @@ namespace SimpleTracker
         {
             var activity = new Intent(this, typeof(RouteListActivity));
             StartActivity(activity);
-        }
-
-        public override bool OnCreateOptionsMenu(IMenu menu)
-        {
-            MenuInflater.Inflate(Resource.Menu.menu_main, menu);
-
-            return true;
-        }
-
-        public override bool OnOptionsItemSelected(IMenuItem item)
-        {
-            int id = item.ItemId;
-            if (id == Resource.Id.action_settings)
-            {
-                Snackbar.Make(FindViewById<Button>(Resource.Id.trackButton), id.ToString(), Snackbar.LengthShort).Show();
-                return true;
-            }
-
-            return base.OnOptionsItemSelected(item);
         }
 
         //private void FabOnClick(object sender, EventArgs eventArgs)

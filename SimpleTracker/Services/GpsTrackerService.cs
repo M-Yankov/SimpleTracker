@@ -144,14 +144,6 @@ namespace SimpleTracker.Services
             this.gpsListener.PositionChanged += Current_PositionChanged;
             this.gpsListener.ProviderDisabled += GpsListener_ProviderDisabled;
             this.gpsManager.RequestLocationUpdates(LocationManager.GpsProvider, minTime: 1000, minDistance: 5, this.gpsListener);
-
-            // This is how to update a notification text
-            /*
-             * notification
-                .SetContentText("UpdatedText");
-
-                notificationManager.Notify(GpsNotificationId, notification.Build());
-            */
         }
 
         private void Current_PositionChanged(object sender, PositionEventArgs e)
