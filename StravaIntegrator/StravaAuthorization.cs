@@ -44,8 +44,6 @@ namespace StravaIntegrator
                 return result;
             }
 
-            // if asked for activity:write API returns activity:write,read
-            // Investigate this again.
             if (!scope.Contains(requiredScopes, StringComparison.InvariantCultureIgnoreCase))
             {
                 result.Error = "Please give required permissions!";
