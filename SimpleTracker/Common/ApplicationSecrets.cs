@@ -12,10 +12,10 @@
             // the activity could be associated with the default gear (shoes, bike), but the user could using other not default gear
             // that requires to edit it later the activity in Strava.
             // Almost in all cases the user will edit the activity in the Strava, title, description, stats, photos etc. It will be upon
-            // the user to decide which gear was used.
+            // the user to decide which gear was used. encrypt
             public const string Scopes = "activity:write";
         }
 
-        public const string SecurityEncriptionValue = "";
+        public const string SimpleEncryptionValue = "";
     }
 }

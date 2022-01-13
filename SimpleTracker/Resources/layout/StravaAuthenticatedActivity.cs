@@ -1,8 +1,12 @@
-﻿
+﻿using System;
+using System.Security.Cryptography;
+
 using Android.App;
 using Android.Content;
 using Android.OS;
 using Android.Widget;
+
+using SimpleDatabase;
 
 using SimpleTracker.Common;
 
@@ -19,6 +23,8 @@ namespace SimpleTracker.Resources.layout
         DataPathPrefixes = new[] { "/authorize-result", })]
     public class StravaAuthenticatedActivity : Activity
     {
+        private SimpleGpsDatabase database;
+
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
@@ -28,6 +34,7 @@ namespace SimpleTracker.Resources.layout
             //Snackbar
             //    .Make(FindViewById(Resource.Id.content), link, Snackbar.LengthLong)
             //    .Show();
+            this.database = SimpleGpsDatabase.Instance;
 
             StravaAuthorization stravaAuthorization = new StravaAuthorization();
             TextView messageField = FindViewById<TextView>(Resource.Id.strava_authenticated_text);
@@ -49,7 +56,12 @@ namespace SimpleTracker.Resources.layout
                 return;
             }
 
-            // save in database
+            SimpleGpsSettings settings = this.database.GetSettings();
+            settings.StravaAccessToken =  Utilities.EncryptValue(tokensInformaton.AccessToken);
+            settings.StravaAccessTokenExpirationDate = tokensInformaton.AccessTokenExpireDate;
+            settings.StravaRefreshToken = Utilities.EncryptValue(tokensInformaton.RefreshToken);
+
+            this.database.UpdateSettings(settings);
         }
     }
 }

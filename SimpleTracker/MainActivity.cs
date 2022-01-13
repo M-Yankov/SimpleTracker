@@ -50,8 +50,6 @@ namespace SimpleTracker
             Button routesButton = FindViewById<Button>(Resource.Id.routesButton);
             routesButton.Click += ShowRoutes_Click;
 
-            var b = routesButton.Background;
-            // new Android.Graphics.Drawables /
             // It's still null if application is closed from the system, but the service is running
             // Maybe I need to destroy the service in Ondestroy.
             if (this.connection == null)
