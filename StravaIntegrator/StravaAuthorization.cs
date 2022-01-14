@@ -14,7 +14,7 @@ namespace StravaIntegrator
         /// <summary>
         /// Validates whether the user give required permission to get tokens.
         /// </summary>
-        /// <param name="link">A link that with query parameters for validation.</param>
+        /// <param name="link">A link with query parameters for validation.</param>
         /// <param name="requiredScopes">Required scopes separated by comma ",".</param>
         public OneTimeUsableCode TryGetAuthorizationCode(string link, string requiredScopes)
         {
