@@ -32,7 +32,11 @@ namespace StravaIntegrator
             content.Add(new StringContent(routeName), "Name");
             content.Add(new StringContent("Integrated by SimpleTracker [URL]"), "Description");
             content.Add(new StringContent("gpx"), "data_type");
-            // content.Add(new StringContent("activity_type"), "Hike"); // Run, Ride
+
+            // This will used when update activity, it's necessary to update it according to the user selection
+
+            // content.Add(new StringContent("type"), "Hike"); // Run, Ride
+            // content.Add(new StringContent("hide_from_home"), "true"); // Run, Ride - control this with from settings
 
             byte[] fileData = ConvertLocationsData(simpleGpsLocations, routeName);
             content.Add(new ByteArrayContent(fileData), "file", "route.gpx");

@@ -82,7 +82,7 @@
     <Compile Include="Models\AuthorizationTokens.cs" />
     <Compile Include="Models\OneTimeUsableCode.cs" />
     <Compile Include="Models\TokenExchangeResponse.cs" />
-    <Compile Include="StravaAuthorization.cs" />
+    <Compile Include="StravaAuthentication.cs" />
     <Compile Include="StravaPublisher.cs" />
     <Compile Include="Resources\Resource.designer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
