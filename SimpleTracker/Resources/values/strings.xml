@@ -5,4 +5,5 @@
   <string name="button_stop_track">Stop</string>
   <string name="button_show_routes">Routes</string>
   <string name="button_clear_routes">Clear all</string>
+  <string name="title_strava">Strava</string>
 </resources>

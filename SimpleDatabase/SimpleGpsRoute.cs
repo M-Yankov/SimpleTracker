@@ -1,6 +1,6 @@
 ﻿using SQLite;
 
-namespace SimpleTracker.Database
+namespace SimpleDatabase
 {
     public class SimpleGpsRoute
     {
@@ -8,5 +8,7 @@ namespace SimpleTracker.Database
         public int? Id { get; set; }
 
         public string Name { get; set; }
+
+        public int? StravaActivityId { get; set; }
     }
 }

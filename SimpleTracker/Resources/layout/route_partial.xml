@@ -28,10 +28,10 @@
         android:layout_weight="1"
         />
 
-    <Button
+   <!-- <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAlignment="viewEnd"
         android:text="Export"
-        android:id="@+id/exportRouteButton"/>
+        android:id="@+id/exportRouteButton"/>-->
 </LinearLayout>

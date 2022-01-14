@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using SimpleDatabase;
 
 using Android.Support.V7.Widget;
 using Android.Views;
@@ -8,12 +9,12 @@ namespace SimpleTracker.Adapters
 {
     public class RoutesAdapter : RecyclerView.Adapter
     {
-        public RoutesAdapter(IList<Database.SimpleGpsRoute> routes)
+        public RoutesAdapter(IList<SimpleGpsRoute> routes)
         {
             this.Routes = routes;
         }
 
-        public IList<Database.SimpleGpsRoute> Routes { get; set; }
+        public IList<SimpleGpsRoute> Routes { get; set; }
 
         public event EventHandler<int> ItemClick;
 

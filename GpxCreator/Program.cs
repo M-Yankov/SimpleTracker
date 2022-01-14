@@ -17,8 +17,8 @@ namespace GpxCreator
     {
         static void Main(string[] args)
         {
-            // ExportRoutes();
-            ImportRoutes();
+            ExportRoutes();
+           // ImportRoutes();
         }
 
         public static void ImportRoutes()
@@ -115,7 +115,7 @@ namespace GpxCreator
                     NewLineHandling = NewLineHandling.Replace
                 };
 
-                using XmlWriter writer = XmlWriter.Create(destination, new XmlWriterSettings());
+                //using XmlWriter writer = XmlWriter.Create(destination, new XmlWriterSettings());
                 new XmlSerializer(exportdata.GetType())
                    .Serialize(new StreamWriter(destination), exportdata);
 
@@ -136,7 +136,6 @@ namespace GpxCreator
 
                     d.Add(new Discrepancy() { Distance = distanceInMeters, NextPoint = nextPoint, PreviousPoint = previousPoint });
                 }
-
                 var ordered = d.OrderByDescending(x => x.Distance);
                 */
             }

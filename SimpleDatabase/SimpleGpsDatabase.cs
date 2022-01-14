@@ -1,25 +1,16 @@
-﻿using Android.App;
-using Android.Content;
-using Android.OS;
-using Android.Runtime;
-using Android.Views;
-using Android.Widget;
+﻿using System.Collections.Generic;
+using System.IO;
+
+using Android.Webkit;
 
 using SQLite;
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
-using System.Threading.Tasks;
-
-namespace SimpleTracker.Database
+namespace SimpleDatabase
 {
     public class SimpleGpsDatabase
     {
         public const string DatabaseName = "SimpleGps.db";
-        private static string databasePath = Path.Combine(
+        private static readonly string databasePath = Path.Combine(
                 System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments), DatabaseName);
         private readonly SQLiteConnection databaseConnection;
 
@@ -32,6 +23,9 @@ namespace SimpleTracker.Database
 
             this.databaseConnection.CreateTable<SimpleGpsLocation>();
             this.databaseConnection.CreateTable<SimpleGpsRoute>();
+            this.databaseConnection.CreateTable<SimpleGpsSettings>();
+
+            this.InitializeSettings();
         }
 
         public static SimpleGpsDatabase Instance
@@ -50,6 +44,19 @@ namespace SimpleTracker.Database
                 }
 
                 return instance;
+            }
+        }
+
+        public void InitializeSettings()
+        {
+            SimpleGpsSettings settings = this.databaseConnection
+                .Table<SimpleGpsSettings>()
+                .FirstOrDefault();
+
+            if (settings == null)
+            {
+                settings = new SimpleGpsSettings();
+                this.databaseConnection.Insert(settings);
             }
         }
 
@@ -77,14 +84,12 @@ namespace SimpleTracker.Database
             return deletedObjectsCount;
         }
 
-        public List<SimpleGpsRoute> GetAllRoutes()
-        {
-            return this.databaseConnection
+        public List<SimpleGpsRoute> GetAllRoutes() =>
+            this.databaseConnection
                 .Table<SimpleGpsRoute>()
                 .ToList();
-        }
 
-        public List<SimpleGpsLocation> GetPath(int routeId) => 
+        public List<SimpleGpsLocation> GetRouteLocations(int routeId) =>
             this.databaseConnection
                 .Table<SimpleGpsLocation>()
                 .Where(x => x.SimpleGpsRouteId == routeId)
@@ -97,7 +102,7 @@ namespace SimpleTracker.Database
 
         public void DeleteRouteWithPath(int routeId)
         {
-            var list = GetPath(routeId);
+            var list = GetRouteLocations(routeId);
             foreach (var item in list)
             {
                 this.databaseConnection.Delete(item);
@@ -106,5 +111,36 @@ namespace SimpleTracker.Database
             var route = GetRoute(routeId);
             this.databaseConnection.Delete(route);
         }
+
+        /// <summary>
+        /// It's expected to have only one record
+        /// </summary>
+        public SimpleGpsSettings GetSettings()
+        {
+            SimpleGpsSettings settings = this.databaseConnection
+                .Table<SimpleGpsSettings>()
+                .FirstOrDefault();
+
+            if (settings == null)
+            {
+                throw new System.NullReferenceException("Setting are not initialized or manually deleted!");
+            }
+
+            return settings;
+        }
+
+        public bool UpdateSettings(SimpleGpsSettings newSettings)
+        {
+            SimpleGpsSettings currentSettings = this.GetSettings();
+
+            currentSettings.ShowAgreement = newSettings.ShowAgreement;
+            currentSettings.StravaAccessToken = newSettings.StravaAccessToken;
+            currentSettings.StravaAccessTokenExpirationDate = newSettings.StravaAccessTokenExpirationDate;
+            currentSettings.StravaRefreshToken = newSettings.StravaRefreshToken;
+            
+            int afectedRows = this.databaseConnection.Update(currentSettings);
+
+            return afectedRows == 1;
+        } 
     }
 }
