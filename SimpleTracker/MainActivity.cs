@@ -67,6 +67,7 @@ namespace SimpleTracker
                 // Revise the code below: What information to show when user returns to main screen?
                 // Connect to database 
                 FindViewById<TextView>(Resource.Id.textView1).Text = $"Recording...";
+                FindViewById<TextView>(Resource.Id.textView1).SetTextColor(Android.Graphics.Color.DarkGray);
             }
         }
 

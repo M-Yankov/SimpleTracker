@@ -43,6 +43,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:autoLink="web"
+                android:id="@+id/strava_publish_route_mute"
                 android:text="Mute (will not show for followers)"
                 />
             <LinearLayout
@@ -53,6 +54,7 @@
                 <Button
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:id="@+id/strava_publish_route_cancel"
                     android:text="@android:string/cancel"
                     android:layout_gravity="left"/>
 
@@ -64,6 +66,7 @@
                 <Button
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:id="@+id/strava_publish_route_confirm"
                     android:text="Publish"
                     android:textColor="@android:color/white"
                     android:background="@color/stravaMain"

@@ -95,10 +95,21 @@ namespace SimpleDatabase
                 .Where(x => x.SimpleGpsRouteId == routeId)
                 .ToList();
 
-        public SimpleGpsRoute GetRoute(int routeId) =>
+        public SimpleGpsRoute GetRoute(int id) =>
             this.databaseConnection
                 .Table<SimpleGpsRoute>()
-                .FirstOrDefault(x => x.Id == routeId);
+                .FirstOrDefault(x => x.Id == id);
+
+        public void UpdateRouteStravaActivityId(int id, long stravaActivityId)
+        {
+            SimpleGpsRoute route = GetRoute(id);
+
+            if (route != null)
+            {
+                route.StravaActivityId = stravaActivityId;
+                this.databaseConnection.Update(route);
+            }
+        }
 
         public void DeleteRouteWithPath(int routeId)
         {

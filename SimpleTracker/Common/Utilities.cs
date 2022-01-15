@@ -30,6 +30,9 @@ namespace SimpleTracker.Common
             }
         }
 
+        public static bool ShouldRefreshAccessToken(DateTime tokenExpirationDate) =>
+            DateTime.UtcNow.Subtract(tokenExpirationDate).TotalMinutes > 30;
+
         public static string EncryptValue(string value)
         {
             byte[] textBytes = Encoding.Unicode.GetBytes(value);

@@ -5,7 +5,9 @@ using System.Linq;
 using Android.App;
 using Android.Content;
 using Android.Locations;
+using Android.Media;
 using Android.OS;
+using Android.Support.Design.Widget;
 using Android.Support.V7.App;
 using Android.Text;
 using Android.Widget;
@@ -15,7 +17,11 @@ using Java.Lang;
 using SimpleDatabase;
 
 using SimpleTracker.Activities;
+using SimpleTracker.Common;
 using SimpleTracker.Dialogs;
+
+using StravaIntegrator;
+using StravaIntegrator.Models;
 
 using V7 = Android.Support.V7.Widget;
 
@@ -25,6 +31,7 @@ namespace SimpleTracker.Resources.layout
     public class RouteDetailsActivity : BaseApplicationActivity
     {
         private SimpleGpsDatabase database;
+        private StravaRoutePublishDialog publishRouteDialog;
 
         protected override void OnCreate(Bundle savedInstanceState)
         {
@@ -153,20 +160,40 @@ namespace SimpleTracker.Resources.layout
             FindViewById<TextView>(Resource.Id.routeDetailsMaxSpeed).Text = $"Max speed: { maxSpeed:F0} km/h.";
             FindViewById<TextView>(Resource.Id.routeDetailsId).Text = $"{id}";
 
+            FindViewById<Button>(Resource.Id.delete_route_button).Click += DeleteRoute_Click;
+        }
+
+        protected override void OnResume()
+        {
+            base.OnResume();
+
+            int id = Intent.Extras.GetInt("id");
+
+            SimpleGpsRoute route = this.database.GetRoute(id);
+
+            SimpleGpsSettings settings = this.database.GetSettings();
+            bool isStravaAuthenticated = !string.IsNullOrWhiteSpace(settings.StravaRefreshToken);
             if (route.StravaActivityId.HasValue)
             {
                 FindViewById<Button>(Resource.Id.strava_view_activity_button).Visibility = Android.Views.ViewStates.Visible;
                 FindViewById<Button>(Resource.Id.strava_publish_route_button).Visibility = Android.Views.ViewStates.Gone;
-
             }
             else
             {
-                FindViewById<Button>(Resource.Id.strava_view_activity_button).Visibility = Android.Views.ViewStates.Gone;
-                FindViewById<Button>(Resource.Id.strava_publish_route_button).Visibility = Android.Views.ViewStates.Visible;
-                FindViewById<Button>(Resource.Id.strava_publish_route_button).Click += PublishToStrava_Click;
-            }
+                if (isStravaAuthenticated)
+                {
+                    FindViewById<Button>(Resource.Id.strava_publish_route_button).Visibility = Android.Views.ViewStates.Visible;
+                    FindViewById<Button>(Resource.Id.strava_publish_route_button).Click += PublishToStrava_Click;
+                }
+                else
+                {
+                    // Make button gray
+                    FindViewById<Button>(Resource.Id.strava_publish_route_button).Visibility = Android.Views.ViewStates.Invisible;
+                    // show message Strava is not authenticated
+                }
 
-            FindViewById<Button>(Resource.Id.delete_route_button).Click += DeleteRoute_Click;
+                FindViewById<Button>(Resource.Id.strava_view_activity_button).Visibility = Android.Views.ViewStates.Gone;
+            }
         }
 
         private void DeleteRoute_Click(object sender, EventArgs e)
@@ -181,14 +208,61 @@ namespace SimpleTracker.Resources.layout
 
         private void PublishToStrava_Click(object sender, EventArgs e)
         {
-            int id = Intent.Extras.GetInt("id");
+            // int id = Intent.Extras.GetInt("id");
 
-            var dialog = new StravaRoutePublishDialog();
-            dialog.Show(SupportFragmentManager, "x");
-            List<SimpleGpsLocation> gpsLocations = this.database.GetRouteLocations(id);
-            SimpleGpsRoute route = this.database.GetRoute(id);
+            publishRouteDialog = new StravaRoutePublishDialog(this.ConfirmPublishToStrava_Click);
+            publishRouteDialog.Show(SupportFragmentManager, "x");
+            
+            // SimpleGpsRoute route = this.database.GetRoute(id);
 
+            
             // StravaIntegrator.StravaPublisher.Publish(gpsLocations, route.Name);
+        }
+
+        private void ConfirmPublishToStrava_Click(object sender, PublishActivity activity)
+        {
+           
+            publishRouteDialog.Dismiss();
+
+
+            SimpleGpsSettings settings = this.database.GetSettings();
+            bool shouldRefreshToken = Utilities.ShouldRefreshAccessToken(settings.StravaAccessTokenExpirationDate.Value);
+
+            string accessToken = Utilities.DecryptValue(settings.StravaAccessToken);
+
+            // This should be in a separate logic
+            if (shouldRefreshToken)
+            {
+                AuthorizationTokens newTokenInformation = new StravaAuthentication().GetAuthotizationsTokens(
+                    Utilities.DecryptValue(settings.StravaRefreshToken),
+                    ApplicationSecrets.Strava.ClientId,
+                    ApplicationSecrets.Strava.ClientSecret,
+                    StravaAuthentication.GrantTypeRefreshToken);
+                // StravaIntegrator.StravaPublisher.Publish(gpsLocations, route.Name);
+
+                accessToken = newTokenInformation.AccessToken;
+
+                settings.StravaAccessToken = Utilities.EncryptValue(newTokenInformation.AccessToken);
+                settings.StravaAccessTokenExpirationDate = newTokenInformation.AccessTokenExpireDate;
+                this.database.UpdateSettings(settings);
+            }
+
+            int id = Intent.Extras.GetInt("id");
+            List<SimpleGpsLocation> gpsLocations = this.database.GetRouteLocations(id);
+            UploadActivityModel result = StravaPublisher.Publish(gpsLocations, accessToken, activity);
+
+            if (!string.IsNullOrWhiteSpace(result.Error))
+            {
+                Snackbar.Make(FindViewById<TextView>(Resource.Id.routeDetailsId), result.Error, Snackbar.LengthLong).Show();
+            }
+            else
+            {
+                this.database.UpdateRouteStravaActivityId(id, result.Id);
+
+                Snackbar.Make(FindViewById<TextView>(Resource.Id.routeDetailsId), "Published!", Snackbar.LengthLong).Show();
+
+                OnResume();
+            }
         }
     }
 
