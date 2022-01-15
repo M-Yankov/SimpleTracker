@@ -83,6 +83,7 @@
     <Compile Include="Common\ApplicationSecrets.cs" />
     <Compile Include="Common\Utilities.cs" />
     <Compile Include="Connections\GpsTrackerServiceConnection.cs" />
+    <Compile Include="Dialogs\StravaRoutePublishDialog.cs" />
     <Compile Include="Resources\layout\RouteDetailsActivity.cs" />
     <Compile Include="Resources\layout\RouteListActivity.cs" />
     <Compile Include="Resources\layout\SettingsActivity.cs" />
@@ -183,6 +184,14 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\drawable\Image.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\strava_route_publish_dialog.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\values\activity_types.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

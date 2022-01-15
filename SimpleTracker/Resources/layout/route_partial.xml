@@ -20,6 +20,8 @@
         android:minWidth="250dp"
         android:id="@+id/routeNameTextView"
         android:text="RouteN"
+        android:layout_gravity="center_vertical"
+        android:textSize="25sp"
         />
 
       <View

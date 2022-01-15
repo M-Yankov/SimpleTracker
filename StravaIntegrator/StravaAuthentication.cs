@@ -95,7 +95,7 @@ namespace StravaIntegrator
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Post, uriBuilder.ToString());
 
-            HttpClient httpClient = new HttpClient();
+            using HttpClient httpClient = new HttpClient();
             
             HttpResponseMessage httpResponseMessage = httpClient.SendAsync(requestMessage).GetAwaiter().GetResult();
             

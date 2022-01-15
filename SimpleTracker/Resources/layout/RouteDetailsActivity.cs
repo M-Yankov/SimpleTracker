@@ -15,6 +15,7 @@ using Java.Lang;
 using SimpleDatabase;
 
 using SimpleTracker.Activities;
+using SimpleTracker.Dialogs;
 
 using V7 = Android.Support.V7.Widget;
 
@@ -182,6 +183,8 @@ namespace SimpleTracker.Resources.layout
         {
             int id = Intent.Extras.GetInt("id");
 
+            var dialog = new StravaRoutePublishDialog();
+            dialog.Show(SupportFragmentManager, "x");
             List<SimpleGpsLocation> gpsLocations = this.database.GetRouteLocations(id);
             SimpleGpsRoute route = this.database.GetRoute(id);
 
