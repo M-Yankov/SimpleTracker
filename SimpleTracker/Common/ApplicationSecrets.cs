@@ -13,7 +13,7 @@
             // that requires to edit it later the activity in Strava.
             // Almost in all cases the user will edit the activity in the Strava, title, description, stats, photos etc. It will be upon
             // the user to decide which gear was used. encrypt
-            public const string Scopes = "activity:write";
+            public const string Scopes = "activity:write,activity:read";
         }
 
         public const string SimpleEncryptionValue = "";
