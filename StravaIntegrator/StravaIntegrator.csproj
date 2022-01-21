@@ -79,6 +79,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Models\UpdateActivityModel.cs" />
     <Compile Include="Models\UploadActivityModel.cs" />
     <Compile Include="Models\AuthorizationTokens.cs" />
     <Compile Include="Models\HttpResponseResult.cs" />

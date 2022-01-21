@@ -2,7 +2,7 @@
 using System.Collections.Specialized;
 using System.Net.Http;
 using System.Web;
-
+using System.Linq;
 using Newtonsoft.Json;
 
 using StravaIntegrator.Models;
@@ -50,7 +50,9 @@ namespace StravaIntegrator
                 return result;
             }
 
-            if (!scope.Contains(requiredScopes, StringComparison.InvariantCultureIgnoreCase))
+            string[] scopes = requiredScopes.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            bool hasMissingScopes = scopes.Any(x => !scope.Contains(x, StringComparison.InvariantCultureIgnoreCase));
+            if (hasMissingScopes)
             {
                 result.Error = "Please give required permissions!";
                 return result;

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Threading.Tasks;
 using System.Xml.Serialization;
 
 using Newtonsoft.Json;
@@ -32,53 +33,87 @@ namespace StravaIntegrator
 
             var httpClient = new HttpClient(handler);
 
-            var msg = new HttpRequestMessage(HttpMethod.Post, "https://www.strava.com/api/v3/uploads");
+            var createRouteRequest = new HttpRequestMessage(HttpMethod.Post, "https://www.strava.com/api/v3/uploads");
             var content = new MultipartFormDataContent();
 
-            content.Add(new StringContent(activity.Name), "Name");
-            content.Add(new StringContent("Integrated by SimpleTracker [URL]"), "description"); // is this working?
+            string description = "Integrated by SimpleTracker https://github.com/M-Yankov/SimpleTracker";
+            if (!string.IsNullOrWhiteSpace(activity.Description))
+            {
+                description = $"{activity.Description}\n{description}";
+            }
+
+            content.Add(new StringContent(activity.Name), "name");
+            content.Add(new StringContent(description), "description");
+
             content.Add(new StringContent("gpx"), "data_type");
 
             byte[] fileData = ConvertLocationsData(simpleGpsLocations, activity.Name);
             content.Add(new ByteArrayContent(fileData), "file", "route.gpx");
-            msg.Content = content;
 
-            msg.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            createRouteRequest.Content = content;
+            createRouteRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
             // Work Async
-            HttpResponseResult<UploadActivityResult> uploadResult = ExecuteRequest<UploadActivityResult>(msg, httpClient);
+            HttpResponseResult<UploadActivityResult> uploadResult = ExecuteRequest<UploadActivityResult>(createRouteRequest, httpClient);
             if (!string.IsNullOrWhiteSpace(uploadResult.Error)
                 || !string.IsNullOrWhiteSpace(uploadResult.Value.Error))
             {
                 return new UploadActivityModel { Error = uploadResult.Error ?? uploadResult.Value.Error };
             }
 
+            bool shouldCheckForUploadStatis;
+
             do
             {
-                System.Threading.Tasks.Task.Delay(5000).GetAwaiter().GetResult();
+                // the activity is not immediately ready, wait a little bit to not flood the service with requests.
+                // ideally "webhooks" will do the job, but it's far away from them.
+                Task.Delay(3000).GetAwaiter().GetResult();
 
-                HttpRequestMessage getUploadResultStatus = new HttpRequestMessage(
+                HttpRequestMessage getUploadStatusRequest = new HttpRequestMessage(
                     HttpMethod.Get,
                     $"https://www.strava.com/api/v3/uploads/{uploadResult.Value.Id}");
 
-                getUploadResultStatus.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-                uploadResult = ExecuteRequest<UploadActivityResult>(getUploadResultStatus, httpClient);
+                getUploadStatusRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+                uploadResult = ExecuteRequest<UploadActivityResult>(getUploadStatusRequest, httpClient);
 
                 // When the upload is ready the status message is "Your activity is ready.", but the better option is to check activityId.
-            } while (!string.IsNullOrEmpty(uploadResult.Error) 
-                    || !string.IsNullOrEmpty(uploadResult.Value?.Error) 
-                    || uploadResult.Value.Activity_id.HasValue == false);
+                shouldCheckForUploadStatis = !string.IsNullOrEmpty(uploadResult.Error)
+                    || !string.IsNullOrEmpty(uploadResult.Value?.Error)
+                    || uploadResult.Value.Activity_id.HasValue == false;
+
+            } while (shouldCheckForUploadStatis);
+
+            if (!string.IsNullOrEmpty(uploadResult.Error)
+                || !string.IsNullOrEmpty(uploadResult.Value?.Error))
+            {
+                return new UploadActivityModel()
+                {
+                    Error = uploadResult.Error ?? uploadResult.Value.Error
+                };
+            }
+
+            UpdateActivityModel updateModel = new UpdateActivityModel()
+            {
+                hide_from_home = activity.Muted,
+                type = activity.Type,
+                gear_id = "none" // clears associated gear.
+            };
+
+            string updateBodyJson = JsonConvert.SerializeObject(updateModel);
+
+            var updateActivityRequest = new HttpRequestMessage(
+                HttpMethod.Put, 
+                $"https://www.strava.com/api/v3/activities/{uploadResult.Value.Activity_id.Value}");
+            updateActivityRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            updateActivityRequest.Content = new StringContent(updateBodyJson, System.Text.Encoding.UTF8, "application/json");
+
+            var updateActivityResponse = ExecuteRequest<object>(updateActivityRequest, httpClient);
 
             return new UploadActivityModel()
             {
-                Error = uploadResult.Value.Error,
+                Error = updateActivityResponse.Error,
                 Id = uploadResult.Value.Activity_id.Value,
             };
-
-            // content.Add(new StringContent("type"), "Hike"); // Run, Ride
-            // content.Add(new StringContent("hide_from_home"), "true"); // Run, Ride - control this with from settings
-            //var msg2 = new HttpRequestMessage(HttpMethod.Put, "https://www.strava.com/api/v3/activities/{id}");
-            //msg2.Content = new StringContent(,) { } 
         }
 
         internal static byte[] ConvertLocationsData(IEnumerable<SimpleGpsLocation> gpsLocations, string routeName)
@@ -95,7 +130,7 @@ namespace StravaIntegrator
             var exportdata = new gpx()
             {
                 creator = "com.mihyan.simpletracker",
-                version = 1.1m,
+                version = 1.2m,
                 metadata = new gpxMetadata()
                 {
                     link = new gpxMetadataLink() { href = "http://localhost:8080", text = "localhost" },
@@ -113,6 +148,7 @@ namespace StravaIntegrator
             //using XmlWriter writer = XmlWriter.Create(destination, new XmlWriterSettings());
             new XmlSerializer(exportdata.GetType())
                .Serialize(stream, exportdata);
+
             return stream.ToArray();
         }
 
@@ -123,7 +159,6 @@ namespace StravaIntegrator
             {
                 string response = res.Content.ReadAsStringAsync().GetAwaiter().GetResult();
 
-                // in most cases 201
                 if (res.IsSuccessStatusCode)
                 {
                     result.Value = JsonConvert.DeserializeObject<T>(response);
