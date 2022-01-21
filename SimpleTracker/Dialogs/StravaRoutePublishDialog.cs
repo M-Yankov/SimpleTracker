@@ -36,8 +36,6 @@ namespace SimpleTracker.Dialogs
 
         public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
         {
-            // will I have ID? 
-
             View view = inflater.Inflate(Resource.Layout.strava_route_publish_dialog, container, false);
             RadioGroup radioGroup = view.FindViewById<RadioGroup>(Resource.Id.strava_publish_route_type);
 
@@ -63,9 +61,9 @@ namespace SimpleTracker.Dialogs
             RadioGroup radioGroup = View.FindViewById<RadioGroup>(Resource.Id.strava_publish_route_type);
 
             string activityType = string.Empty;
-            if (radioGroup.Selected)
+            if (radioGroup.CheckedRadioButtonId != -1)
             {
-                activityType = ((RadioButton)radioGroup.GetChildAt(radioGroup.CheckedRadioButtonId)).Text;
+                activityType = radioGroup.FindViewById<RadioButton>(radioGroup.CheckedRadioButtonId).Text;
             }
 
             string activityName = View.FindViewById<EditText>(Resource.Id.strava_publish_route_name).Text;
