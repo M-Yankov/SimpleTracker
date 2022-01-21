@@ -32,6 +32,7 @@ namespace SimpleTracker.Resources.layout
     {
         private SimpleGpsDatabase database;
         private StravaRoutePublishDialog publishRouteDialog;
+        private long? stravaActivityid = null;
 
         protected override void OnCreate(Bundle savedInstanceState)
         {
@@ -47,6 +48,7 @@ namespace SimpleTracker.Resources.layout
 
             List<SimpleGpsLocation> gpsLocations = this.database.GetRouteLocations(id);
             SimpleGpsRoute route = this.database.GetRoute(id);
+            stravaActivityid = route.StravaActivityId;
 
             // statistics calculated may not be accurate, due to incorrect locations provided by GPS provider
             float distanceInMeters = 0;
@@ -161,6 +163,19 @@ namespace SimpleTracker.Resources.layout
             FindViewById<TextView>(Resource.Id.routeDetailsId).Text = $"{id}";
 
             FindViewById<Button>(Resource.Id.delete_route_button).Click += DeleteRoute_Click;
+            FindViewById<Button>(Resource.Id.strava_view_activity_button).Click += ViewRouteDetailsClick;
+        }
+
+        private void ViewRouteDetailsClick(object sender, EventArgs e)
+        {
+            if (stravaActivityid.HasValue)
+            {
+                var builder = new UriBuilder($"https://www.strava.com/activities/{stravaActivityid.Value}");
+
+                var uri = Android.Net.Uri.Parse(builder.ToString());
+                var intent = new Intent(Intent.ActionView, uri);
+                StartActivity(intent);
+            }
         }
 
         protected override void OnResume()
@@ -208,23 +223,12 @@ namespace SimpleTracker.Resources.layout
 
         private void PublishToStrava_Click(object sender, EventArgs e)
         {
-            // int id = Intent.Extras.GetInt("id");
-
             publishRouteDialog = new StravaRoutePublishDialog(this.ConfirmPublishToStrava_Click);
-            publishRouteDialog.Show(SupportFragmentManager, "x");
-            
-            // SimpleGpsRoute route = this.database.GetRoute(id);
-
-            
-            // StravaIntegrator.StravaPublisher.Publish(gpsLocations, route.Name);
+            publishRouteDialog.Show(SupportFragmentManager, publishRouteDialog.GetType().Name);
         }
 
         private void ConfirmPublishToStrava_Click(object sender, PublishActivity activity)
         {
-           
-            publishRouteDialog.Dismiss();
-
-
             SimpleGpsSettings settings = this.database.GetSettings();
             bool shouldRefreshToken = Utilities.ShouldRefreshAccessToken(settings.StravaAccessTokenExpirationDate.Value);
 
@@ -238,7 +242,6 @@ namespace SimpleTracker.Resources.layout
                     ApplicationSecrets.Strava.ClientId,
                     ApplicationSecrets.Strava.ClientSecret,
                     StravaAuthentication.GrantTypeRefreshToken);
-                // StravaIntegrator.StravaPublisher.Publish(gpsLocations, route.Name);
 
                 accessToken = newTokenInformation.AccessToken;
 
@@ -250,6 +253,8 @@ namespace SimpleTracker.Resources.layout
             int id = Intent.Extras.GetInt("id");
             List<SimpleGpsLocation> gpsLocations = this.database.GetRouteLocations(id);
             UploadActivityModel result = StravaPublisher.Publish(gpsLocations, accessToken, activity);
+
+            publishRouteDialog.Dismiss();
 
             if (!string.IsNullOrWhiteSpace(result.Error))
             {

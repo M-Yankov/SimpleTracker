@@ -26,7 +26,7 @@
                 android:layout_width="200sp"
                 android:layout_height="wrap_content"
                 android:id="@+id/strava_publish_route_description"
-                android:hint="Descrption"
+                android:hint="Description"
                 android:inputType="textMultiLine"
             />
             <ScrollView
@@ -34,7 +34,7 @@
                 android:layout_height="200sp">
                 <RadioGroup
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
                     android:tooltipText="Type"
                     android:id="@+id/strava_publish_route_type">
                 </RadioGroup>

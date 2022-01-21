@@ -49,6 +49,9 @@ namespace SimpleTracker.Resources.layout
 
             if (isStravaInstalled && !isStravaAuthenticated)
             {
+                // move click subscribe methods in onCreateView
+                // This should set clickable false/true
+                stravaButton.Click -= AuthorizeStrava_Click;
                 stravaButton.Click += AuthorizeStrava_Click;
             }
             else
