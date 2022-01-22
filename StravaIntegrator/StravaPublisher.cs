@@ -4,11 +4,17 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Threading.Tasks;
 using System.Xml.Serialization;
+
+using Android.Content.PM;
+
+using Newtonsoft.Json;
 
 using SimpleDatabase;
 
 using StravaIntegrator.GpxEntities;
+using StravaIntegrator.Models;
 
 using Xamarin.Android.Net;
 
@@ -16,7 +22,11 @@ namespace StravaIntegrator
 {
     public static class StravaPublisher
     {
-        public static void Publish(IEnumerable<SimpleGpsLocation> simpleGpsLocations, string routeName)
+        public static UploadActivityModel Publish(
+            IEnumerable<SimpleGpsLocation> simpleGpsLocations,
+            string accessToken,
+            PublishActivity activity,
+            PackageInfo packageInfo)
         {
             var handler = new AndroidClientHandler
             {
@@ -26,28 +36,93 @@ namespace StravaIntegrator
 
             var httpClient = new HttpClient(handler);
 
-            var msg = new HttpRequestMessage(HttpMethod.Post, "https://www.strava.com/api/v3/uploads");
+            var createRouteRequest = new HttpRequestMessage(HttpMethod.Post, "https://www.strava.com/api/v3/uploads");
             var content = new MultipartFormDataContent();
 
-            content.Add(new StringContent(routeName), "Name");
-            content.Add(new StringContent("Integrated by SimpleTracker [URL]"), "Description");
-            content.Add(new StringContent("gpx"), "data_type");
-            // content.Add(new StringContent("activity_type"), "Hike"); // Run, Ride
-
-            byte[] fileData = ConvertLocationsData(simpleGpsLocations, routeName);
-            content.Add(new ByteArrayContent(fileData), "file", "route.gpx");
-            msg.Content = content;
-
-            string accessToken = "---";
-            msg.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-
-            if (httpClient.SendAsync(msg).GetAwaiter().GetResult() is AndroidHttpResponseMessage res)
+            string description = "Integrated by SimpleTracker https://github.com/M-Yankov/SimpleTracker";
+            if (!string.IsNullOrWhiteSpace(activity.Description))
             {
-                string response = res.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                description = $"{activity.Description}\n{description}";
             }
+
+            content.Add(new StringContent(activity.Name), "name");
+            content.Add(new StringContent(description), "description");
+
+            content.Add(new StringContent("gpx"), "data_type");
+
+            byte[] fileData = ConvertLocationsData(simpleGpsLocations, activity.Name, packageInfo);
+            content.Add(new ByteArrayContent(fileData), "file", "route.gpx");
+
+            createRouteRequest.Content = content;
+            createRouteRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+            // Work Async
+            HttpResponseResult<UploadActivityResult> uploadResult = ExecuteRequest<UploadActivityResult>(createRouteRequest, httpClient);
+            if (!string.IsNullOrWhiteSpace(uploadResult.Error)
+                || !string.IsNullOrWhiteSpace(uploadResult.Value.Error))
+            {
+                return new UploadActivityModel { Error = uploadResult.Error ?? uploadResult.Value.Error };
+            }
+
+            bool shouldCheckForUploadStatis;
+
+            do
+            {
+                // the activity is not immediately ready, wait a little bit to not flood the service with requests.
+                // ideally "webhooks" will do the job, but it's far away from them.
+                Task.Delay(3000).GetAwaiter().GetResult();
+
+                HttpRequestMessage getUploadStatusRequest = new HttpRequestMessage(
+                    HttpMethod.Get,
+                    $"https://www.strava.com/api/v3/uploads/{uploadResult.Value.Id}");
+
+                getUploadStatusRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+                uploadResult = ExecuteRequest<UploadActivityResult>(getUploadStatusRequest, httpClient);
+
+                // When the upload is ready the status message is "Your activity is ready.", but the better option is to check activityId.
+                shouldCheckForUploadStatis = !string.IsNullOrEmpty(uploadResult.Error)
+                    || !string.IsNullOrEmpty(uploadResult.Value?.Error)
+                    || uploadResult.Value.Activity_id.HasValue == false;
+
+            } while (shouldCheckForUploadStatis);
+
+            if (!string.IsNullOrEmpty(uploadResult.Error)
+                || !string.IsNullOrEmpty(uploadResult.Value?.Error))
+            {
+                return new UploadActivityModel()
+                {
+                    Error = uploadResult.Error ?? uploadResult.Value.Error
+                };
+            }
+
+            UpdateActivityModel updateModel = new UpdateActivityModel()
+            {
+                hide_from_home = activity.Muted,
+                type = activity.Type,
+                gear_id = "none" // clears associated gear.
+            };
+
+            string updateBodyJson = JsonConvert.SerializeObject(updateModel);
+
+            var updateActivityRequest = new HttpRequestMessage(
+                HttpMethod.Put, 
+                $"https://www.strava.com/api/v3/activities/{uploadResult.Value.Activity_id.Value}");
+            updateActivityRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            updateActivityRequest.Content = new StringContent(updateBodyJson, System.Text.Encoding.UTF8, "application/json");
+
+            var updateActivityResponse = ExecuteRequest<object>(updateActivityRequest, httpClient);
+
+            return new UploadActivityModel()
+            {
+                Error = updateActivityResponse.Error,
+                Id = uploadResult.Value.Activity_id.Value,
+            };
         }
 
-        internal static byte[] ConvertLocationsData(IEnumerable<SimpleGpsLocation> gpsLocations, string routeName)
+        internal static byte[] ConvertLocationsData(
+            IEnumerable<SimpleGpsLocation> gpsLocations,
+            string routeName,
+            PackageInfo packageInfo)
         {
             IEnumerable<gpxTrkTrkpt> points = gpsLocations
                 .Select(x => new gpxTrkTrkpt()
@@ -60,8 +135,8 @@ namespace StravaIntegrator
 
             var exportdata = new gpx()
             {
-                creator = "com.mihyan.simpletracker",
-                version = 1.1m,
+                creator = packageInfo.PackageName,
+                version = packageInfo.VersionName,
                 metadata = new gpxMetadata()
                 {
                     link = new gpxMetadataLink() { href = "http://localhost:8080", text = "localhost" },
@@ -79,7 +154,32 @@ namespace StravaIntegrator
             //using XmlWriter writer = XmlWriter.Create(destination, new XmlWriterSettings());
             new XmlSerializer(exportdata.GetType())
                .Serialize(stream, exportdata);
+
             return stream.ToArray();
+        }
+
+        private static HttpResponseResult<T> ExecuteRequest<T>(HttpRequestMessage request, HttpClient client) where T : class
+        {
+            HttpResponseResult<T> result = new HttpResponseResult<T>();
+            if (client.SendAsync(request).GetAwaiter().GetResult() is AndroidHttpResponseMessage res)
+            {
+                string response = res.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+
+                if (res.IsSuccessStatusCode)
+                {
+                    result.Value = JsonConvert.DeserializeObject<T>(response);
+                }
+                else
+                {
+                    result.Error = response;
+                }
+            }
+            else
+            {
+                result.Error = "General error";
+            }
+
+            return result;
         }
     }
 }

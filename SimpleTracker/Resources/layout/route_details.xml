@@ -116,9 +116,9 @@
                 <Button
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Publish"
+                    android:text="Publish..."
                     android:backgroundTint="@color/stravaMain"
-                    android:textColor="#fff"
+                    android:textColor="@android:color/white"
                     android:id="@+id/strava_publish_route_button"
                     android:layout_marginLeft="5dp"
                     />
@@ -129,6 +129,7 @@
                     android:layout_height="wrap_content"
                     android:text="View activity"
                     android:backgroundTint="@color/stravaMain"
+                    android:textColor="@android:color/white"
                     />
             </LinearLayout>
         </LinearLayout>

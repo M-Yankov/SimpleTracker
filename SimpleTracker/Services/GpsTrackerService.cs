@@ -135,8 +135,9 @@ namespace SimpleTracker.Services
 
             SimpleGpsRoute route = new SimpleGpsRoute()
             { 
-                Name = $"Route: {DateTime.Now.ToShortDateString()} {DateTime.Now.ToShortTimeString()}"
+                Name = $"Route: {DateTime.Now:dd/MMM/yyyy HH:mm}"
             };
+
             this.database.Add(route);
             
             this.currentRouteId = route.Id;

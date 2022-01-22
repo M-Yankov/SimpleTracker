@@ -1,7 +1,4 @@
-﻿using System;
-using System.Security.Cryptography;
-
-using Android.App;
+﻿using Android.App;
 using Android.Content;
 using Android.OS;
 using Android.Widget;
@@ -31,12 +28,10 @@ namespace SimpleTracker.Resources.layout
             SetContentView(Resource.Layout.strava_authenticated);
 
             string link = Intent.DataString;
-            //Snackbar
-            //    .Make(FindViewById(Resource.Id.content), link, Snackbar.LengthLong)
-            //    .Show();
+
             this.database = SimpleGpsDatabase.Instance;
 
-            StravaAuthorization stravaAuthorization = new StravaAuthorization();
+            StravaAuthentication stravaAuthorization = new StravaAuthentication();
             TextView messageField = FindViewById<TextView>(Resource.Id.strava_authenticated_text);
             OneTimeUsableCode oneTimeCode = stravaAuthorization.TryGetAuthorizationCode(link, ApplicationSecrets.Strava.Scopes);
             if (!string.IsNullOrWhiteSpace(oneTimeCode.Error))
@@ -48,7 +43,8 @@ namespace SimpleTracker.Resources.layout
             AuthorizationTokens tokensInformaton = stravaAuthorization.GetAuthotizationsTokens(
                 oneTimeCode.Value,
                 ApplicationSecrets.Strava.ClientId,
-                ApplicationSecrets.Strava.ClientSecret);
+                ApplicationSecrets.Strava.ClientSecret,
+                StravaAuthentication.GrantTypeAuthorizationCode);
 
             if (!string.IsNullOrWhiteSpace(tokensInformaton.ErrorResponse))
             {

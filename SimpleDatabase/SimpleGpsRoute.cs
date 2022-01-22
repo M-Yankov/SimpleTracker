@@ -9,6 +9,6 @@ namespace SimpleDatabase
 
         public string Name { get; set; }
 
-        public int? StravaActivityId { get; set; }
+        public long? StravaActivityId { get; set; }
     }
 }
