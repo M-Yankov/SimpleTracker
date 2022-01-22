@@ -144,7 +144,7 @@ namespace SimpleTracker.Resources.layout
             {
                 TimeSpan duration = gpsLocations[gpsLocations.Count - 1].DateTime.Subtract(gpsLocations[0].DateTime);
                 // Total hours are used, because the track could take longer than 24 hours.
-                durationText += $"{(int)System.Math.Floor(duration.TotalHours):D2}:{duration.Minutes:D2}:{duration.Seconds:D2}";
+                durationText += $"{(int)Math.Floor(duration.TotalHours):D2}:{duration.Minutes:D2}:{duration.Seconds:D2}";
             }
 
             FindViewById<TextView>(Resource.Id.routeDetailsName).Text = route.Name;
