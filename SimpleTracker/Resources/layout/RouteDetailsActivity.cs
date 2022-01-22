@@ -162,8 +162,6 @@ namespace SimpleTracker.Resources.layout
             FindViewById<Button>(Resource.Id.strava_view_activity_button).Click += ViewRouteDetailsClick;
         }
 
-
-
         protected override void OnResume()
         {
             base.OnResume();
