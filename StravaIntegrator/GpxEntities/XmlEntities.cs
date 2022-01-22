@@ -21,7 +21,7 @@ namespace StravaIntegrator.GpxEntities
 
         private string creatorField;
 
-        private decimal versionField;
+        private string versionField;
 
         /// <remarks/>
         public gpxMetadata metadata
@@ -65,7 +65,7 @@ namespace StravaIntegrator.GpxEntities
 
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public decimal version
+        public string version
         {
             get
             {

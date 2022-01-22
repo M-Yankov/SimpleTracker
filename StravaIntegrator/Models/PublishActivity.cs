@@ -6,7 +6,6 @@
 
         public string Description { get; set; }
 
-
         #region UpdateProperties
         /// <summary>
         /// Run, Hike, Ride ...

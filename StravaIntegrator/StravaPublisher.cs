@@ -7,6 +7,8 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 
+using Android.Content.PM;
+
 using Newtonsoft.Json;
 
 using SimpleDatabase;
@@ -23,7 +25,8 @@ namespace StravaIntegrator
         public static UploadActivityModel Publish(
             IEnumerable<SimpleGpsLocation> simpleGpsLocations,
             string accessToken,
-            PublishActivity activity)
+            PublishActivity activity,
+            PackageInfo packageInfo)
         {
             var handler = new AndroidClientHandler
             {
@@ -47,7 +50,7 @@ namespace StravaIntegrator
 
             content.Add(new StringContent("gpx"), "data_type");
 
-            byte[] fileData = ConvertLocationsData(simpleGpsLocations, activity.Name);
+            byte[] fileData = ConvertLocationsData(simpleGpsLocations, activity.Name, packageInfo);
             content.Add(new ByteArrayContent(fileData), "file", "route.gpx");
 
             createRouteRequest.Content = content;
@@ -116,7 +119,10 @@ namespace StravaIntegrator
             };
         }
 
-        internal static byte[] ConvertLocationsData(IEnumerable<SimpleGpsLocation> gpsLocations, string routeName)
+        internal static byte[] ConvertLocationsData(
+            IEnumerable<SimpleGpsLocation> gpsLocations,
+            string routeName,
+            PackageInfo packageInfo)
         {
             IEnumerable<gpxTrkTrkpt> points = gpsLocations
                 .Select(x => new gpxTrkTrkpt()
@@ -129,8 +135,8 @@ namespace StravaIntegrator
 
             var exportdata = new gpx()
             {
-                creator = "com.mihyan.simpletracker",
-                version = 1.2m,
+                creator = packageInfo.PackageName,
+                version = packageInfo.VersionName,
                 metadata = new gpxMetadata()
                 {
                     link = new gpxMetadataLink() { href = "http://localhost:8080", text = "localhost" },

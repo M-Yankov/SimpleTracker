@@ -1,7 +1,4 @@
-﻿using System;
-using System.Security.Cryptography;
-
-using Android.App;
+﻿using Android.App;
 using Android.Content;
 using Android.OS;
 using Android.Widget;
@@ -31,9 +28,7 @@ namespace SimpleTracker.Resources.layout
             SetContentView(Resource.Layout.strava_authenticated);
 
             string link = Intent.DataString;
-            //Snackbar
-            //    .Make(FindViewById(Resource.Id.content), link, Snackbar.LengthLong)
-            //    .Show();
+
             this.database = SimpleGpsDatabase.Instance;
 
             StravaAuthentication stravaAuthorization = new StravaAuthentication();

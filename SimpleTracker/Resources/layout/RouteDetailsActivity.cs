@@ -4,15 +4,11 @@ using System.Linq;
 
 using Android.App;
 using Android.Content;
+using Android.Content.PM;
 using Android.Locations;
-using Android.Media;
 using Android.OS;
 using Android.Support.Design.Widget;
-using Android.Support.V7.App;
-using Android.Text;
 using Android.Widget;
-
-using Java.Lang;
 
 using SimpleDatabase;
 
@@ -166,17 +162,7 @@ namespace SimpleTracker.Resources.layout
             FindViewById<Button>(Resource.Id.strava_view_activity_button).Click += ViewRouteDetailsClick;
         }
 
-        private void ViewRouteDetailsClick(object sender, EventArgs e)
-        {
-            if (stravaActivityid.HasValue)
-            {
-                var builder = new UriBuilder($"https://www.strava.com/activities/{stravaActivityid.Value}");
 
-                var uri = Android.Net.Uri.Parse(builder.ToString());
-                var intent = new Intent(Intent.ActionView, uri);
-                StartActivity(intent);
-            }
-        }
 
         protected override void OnResume()
         {
@@ -252,7 +238,10 @@ namespace SimpleTracker.Resources.layout
 
             int id = Intent.Extras.GetInt("id");
             List<SimpleGpsLocation> gpsLocations = this.database.GetRouteLocations(id);
-            UploadActivityModel result = StravaPublisher.Publish(gpsLocations, accessToken, activity);
+
+            PackageInfo packageInfo = PackageManager.GetPackageInfo(PackageName, 0);
+            UploadActivityModel result = StravaPublisher
+                .Publish(gpsLocations, accessToken, activity, packageInfo);
 
             publishRouteDialog.Dismiss();
 
@@ -267,6 +256,18 @@ namespace SimpleTracker.Resources.layout
                 Snackbar.Make(FindViewById<TextView>(Resource.Id.routeDetailsId), "Published!", Snackbar.LengthLong).Show();
 
                 OnResume();
+            }
+        }
+
+        private void ViewRouteDetailsClick(object sender, EventArgs e)
+        {
+            if (stravaActivityid.HasValue)
+            {
+                var builder = new UriBuilder($"https://www.strava.com/activities/{stravaActivityid.Value}");
+
+                var uri = Android.Net.Uri.Parse(builder.ToString());
+                var intent = new Intent(Intent.ActionView, uri);
+                StartActivity(intent);
             }
         }
     }
