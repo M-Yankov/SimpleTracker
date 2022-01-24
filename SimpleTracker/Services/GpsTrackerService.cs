@@ -1,29 +1,22 @@
-﻿using Android.App;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+
+using Android.App;
 using Android.Content;
 using Android.Locations;
 using Android.OS;
 using Android.Runtime;
-using Android.Views;
-using Android.Widget;
 
-using SimpleTracker.Binders;
 using SimpleDatabase;
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
+using SimpleTracker.Binders;
 
 namespace SimpleTracker.Services
 {
     [Service]
     public class GpsTrackerService : Service
     {
-        /*
-         * private Handler handler;
-            private Action runnable;
-        */
         private LocationManager gpsManager;
         private SimpleGpsLocationListener gpsListener;
         private NotificationManager notificationManager;
@@ -57,7 +50,7 @@ namespace SimpleTracker.Services
             base.OnCreate();
         }
 
-        [return: GeneratedEnum]//????
+        [return: GeneratedEnum]
         public override StartCommandResult OnStartCommand(Intent intent, [GeneratedEnum] StartCommandFlags flags, int startId)
         {
             switch (intent.Action.ToUpperInvariant())
@@ -79,8 +72,8 @@ namespace SimpleTracker.Services
         /// </summary>
         public override IBinder OnBind(Intent intent)
         {
-            // Return null because this is a pure started service. A hybrid service would return a binder that would
-            // allow access to the GetFormattedStamp() method.
+            // A pure started service should return null.
+            // A hybrid service would return a binder that ...?
 
             this.Binder = new GpsTrackerServiceBinder(this);
             return this.Binder;
