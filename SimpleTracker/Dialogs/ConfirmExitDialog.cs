@@ -6,7 +6,6 @@ using Android.OS;
 
 using V4 = Android.Support.V4.App;
 
-
 namespace SimpleTracker.Dialogs
 {
     public class ConfirmExitDialog : V4.DialogFragment 
