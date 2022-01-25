@@ -1,16 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
-using Android.App;
-using V4 = Android.Support.V4.App;
-using Android.Content;
 using Android.OS;
-using Android.Runtime;
 using Android.Views;
 using Android.Widget;
+
 using StravaIntegrator.Models;
+
+using V4 = Android.Support.V4.App;
 
 namespace SimpleTracker.Dialogs
 {
@@ -22,17 +18,6 @@ namespace SimpleTracker.Dialogs
         {
             this.onPublishClick = onPublishClick;
         }
-        //public override Dialog OnCreateDialog(Bundle savedInstanceState)
-        //{
-        //    return new AlertDialog.Builder(Activity)
-        //        .SetMessage("HelloWorld")
-        //        .SetPositiveButton("Publish", (object sender, DialogClickEventArgs args) =>
-        //        {
-
-        //        })
-        //        .Create();
-
-        //}
 
         public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
         {

@@ -1,15 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-using Android.App;
-using Android.Content;
-using Android.OS;
-using Android.Runtime;
+﻿using Android.Content;
 using Android.Support.V7.App;
 using Android.Views;
-using Android.Widget;
 
 using SimpleTracker.Resources.layout;
 
@@ -36,6 +27,5 @@ namespace SimpleTracker.Activities
 
             return base.OnOptionsItemSelected(item);
         }
-
     }
 }

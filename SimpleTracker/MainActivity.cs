@@ -6,16 +6,14 @@ using Android.App;
 
 using Android.Content;
 using Android.Content.PM;
+using Android.Graphics;
 using Android.OS;
 using Android.Runtime;
 using Android.Support.V4.App;
-using Android.Support.V7.App;
-using Android.Views;
 using Android.Widget;
 
-using Google.Android.Material.Snackbar;
-
 using SimpleTracker.Activities;
+using SimpleTracker.Dialogs;
 using SimpleTracker.Resources.layout;
 
 using V7 = Android.Support.V7.Widget;
@@ -28,10 +26,24 @@ namespace SimpleTracker
         private const int GpsRequestCode = 100;
         private Connections.GpsTrackerServiceConnection connection;
 
+        public override void OnBackPressed()
+        {
+            if (this.IsServiceConnected)
+            {
+                // base.OnBackPressed will call onDestroy() later.
+                new ConfirmExitDialog(base.OnBackPressed)
+                    .Show(SupportFragmentManager, typeof(ConfirmExitDialog).Name);
+            }
+            else
+            {
+                base.OnBackPressed();
+            }
+        }
+
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
-            // Platform.Init(this, savedInstanceState);
+
             SetContentView(Resource.Layout.activity_main);
 
             // How to access the service here ?
@@ -66,11 +78,17 @@ namespace SimpleTracker
             {
                 // Revise the code below: What information to show when user returns to main screen?
                 // Connect to database 
-                FindViewById<TextView>(Resource.Id.textView1).Text = $"Recording...";
-                FindViewById<TextView>(Resource.Id.textView1).SetTextColor(Android.Graphics.Color.DarkGray);
+                TextView textView = FindViewById<TextView>(Resource.Id.textView1);
+                textView.Text = $"Recording...";
+                textView.SetTextColor(Color.DarkGray);
             }
         }
 
+        /// <summary>
+        /// If the method is not implemented, the service cannot be disconnected anymore ...
+        /// Need to check possibilities, where it goes and how it can be accessed if OnDestroy
+        /// method is not implemented.
+        /// </summary>
         protected override void OnDestroy()
         {
             base.OnDestroy();
@@ -106,53 +124,38 @@ namespace SimpleTracker
             StartActivity(activity);
         }
 
-        //private void FabOnClick(object sender, EventArgs eventArgs)
-        //{
-        //    View view = (View)sender;
-        //    Snackbar.Make(view, "Replace with your own action", Snackbar.LengthLong)
-        //        .SetAction("Action", (Android.Views.View.IOnClickListener)null).Show();
-        //}
-
         public override void OnRequestPermissionsResult(
-            int requestCode, 
-            string[] permissions, 
+            int requestCode,
+            string[] permissions,
             [GeneratedEnum] Permission[] grantResults)
         {
             if (requestCode == GpsRequestCode)
             {
-                bool arePermissionsForLocationGranted = 
+                bool arePermissionsForLocationGranted =
                     permissions?.Contains(Manifest.Permission.AccessFineLocation) == true
                     && grantResults?.Contains(Permission.Granted) == true;
-                
+
                 if (arePermissionsForLocationGranted)
                 {
                     FindViewById<Button>(Resource.Id.stopTrackButton).Enabled = true;
 
                     var intent = new Intent(this, typeof(Services.GpsTrackerService));
                     intent.SetAction("Start");
-                    
+
                     BindService(intent, this.connection, Bind.AutoCreate);
                     StartService(intent);
                 }
                 else
                 {
                     TextView text = FindViewById<TextView>(Resource.Id.textView1);
-                    
+
                     text.Text = "Please provide GPS permissions.";
-                    text.SetTextColor(Android.Graphics.Color.Red);
+                    text.SetTextColor(Color.Red);
 
                     FindViewById<Button>(Resource.Id.trackButton).Enabled = true;
                     FindViewById<Button>(Resource.Id.stopTrackButton).Enabled = false;
                 }
-
-                //Permission res = CheckCallingOrSelfPermission(Manifest.Permission.AccessFineLocation);
-                //if (res == Permission.Granted)
-                //{
-                //}
             }
-
-            // Xamarin.Essentials
-            // Platform.OnRequestPermissionsResult(requestCode, permissions, grantResults);
 
             base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
         }
