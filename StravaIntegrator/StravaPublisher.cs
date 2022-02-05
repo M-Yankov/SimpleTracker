@@ -34,6 +34,7 @@ namespace StravaIntegrator
                 AutomaticDecompression = DecompressionMethods.Deflate | DecompressionMethods.GZip,
             };
 
+            #region UploadActivity
             var httpClient = new HttpClient(handler);
 
             var createRouteRequest = new HttpRequestMessage(HttpMethod.Post, "https://www.strava.com/api/v3/uploads");
@@ -64,7 +65,7 @@ namespace StravaIntegrator
                 return new UploadActivityModel { Error = uploadResult.Error ?? uploadResult.Value.Error };
             }
 
-            bool shouldCheckForUploadStatis;
+            bool shouldCheckForUploadStatus;
 
             do
             {
@@ -80,11 +81,11 @@ namespace StravaIntegrator
                 uploadResult = ExecuteRequest<UploadActivityResult>(getUploadStatusRequest, httpClient);
 
                 // When the upload is ready the status message is "Your activity is ready.", but the better option is to check activityId.
-                shouldCheckForUploadStatis = !string.IsNullOrEmpty(uploadResult.Error)
+                shouldCheckForUploadStatus = !string.IsNullOrEmpty(uploadResult.Error)
                     || !string.IsNullOrEmpty(uploadResult.Value?.Error)
                     || uploadResult.Value.Activity_id.HasValue == false;
 
-            } while (shouldCheckForUploadStatis);
+            } while (shouldCheckForUploadStatus);
 
             if (!string.IsNullOrEmpty(uploadResult.Error)
                 || !string.IsNullOrEmpty(uploadResult.Value?.Error))
@@ -94,23 +95,45 @@ namespace StravaIntegrator
                     Error = uploadResult.Error ?? uploadResult.Value.Error
                 };
             }
+            #endregion
 
-            UpdateActivityModel updateModel = new UpdateActivityModel()
+            #region UpdateActivityType
+            UpdateActivityModel updateActivityTypeModel = new UpdateActivityModel()
             {
                 hide_from_home = activity.Muted,
-                type = activity.Type,
-                gear_id = "none" // clears associated gear.
+                type = activity.Type
             };
 
-            string updateBodyJson = JsonConvert.SerializeObject(updateModel);
+            string updateBodyJson = JsonConvert.SerializeObject(updateActivityTypeModel);
 
             var updateActivityRequest = new HttpRequestMessage(
-                HttpMethod.Put, 
+                HttpMethod.Put,
                 $"https://www.strava.com/api/v3/activities/{uploadResult.Value.Activity_id.Value}");
             updateActivityRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
             updateActivityRequest.Content = new StringContent(updateBodyJson, System.Text.Encoding.UTF8, "application/json");
 
-            var updateActivityResponse = ExecuteRequest<object>(updateActivityRequest, httpClient);
+            HttpResponseResult<object> updateActivityResponse = ExecuteRequest<object>(updateActivityRequest, httpClient);
+            #endregion
+
+            // need to wait a little bit until changing activity type is ready.
+            Task.Delay(3000).GetAwaiter().GetResult();
+
+            #region ResetActivityType
+            UpdateActivityModel updateGearModel = new UpdateActivityModel()
+            {
+                hide_from_home = activity.Muted,
+                gear_id = "none" // clears associated gear.
+            };
+            updateBodyJson = JsonConvert.SerializeObject(updateGearModel);
+
+            var updateGearActivityRequest = new HttpRequestMessage(
+                HttpMethod.Put,
+                $"https://www.strava.com/api/v3/activities/{uploadResult.Value.Activity_id.Value}");
+            updateGearActivityRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            updateGearActivityRequest.Content = new StringContent(updateBodyJson, System.Text.Encoding.UTF8, "application/json");
+
+            updateActivityResponse = ExecuteRequest<object>(updateGearActivityRequest, httpClient);
+            #endregion
 
             return new UploadActivityModel()
             {
