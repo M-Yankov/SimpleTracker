@@ -7,12 +7,14 @@ using Android.App;
 using Android.Content;
 using Android.Content.PM;
 using Android.Graphics;
+using Android.Locations;
 using Android.OS;
 using Android.Runtime;
 using Android.Support.V4.App;
 using Android.Widget;
 
 using SimpleTracker.Activities;
+using SimpleTracker.Broadcasters.Receivers;
 using SimpleTracker.Dialogs;
 using SimpleTracker.Resources.layout;
 
@@ -25,6 +27,14 @@ namespace SimpleTracker
     {
         private const int GpsRequestCode = 100;
         private Connections.GpsTrackerServiceConnection connection;
+        private LocationSettingsChagnedReceiver receiver;
+
+        /// <summary>
+        /// A temporary flag indicating whether gps service is starting.
+        /// It requires more time and for that some UI changes may depend on that status.
+        /// It is returned to false when the gps service is started.
+        /// </summary>
+        private bool isServiceConnecting = false;
 
         public override void OnBackPressed()
         {
@@ -68,20 +78,24 @@ namespace SimpleTracker
             {
                 this.connection = new Connections.GpsTrackerServiceConnection(this);
             }
+
+            this.receiver = new LocationSettingsChagnedReceiver();
         }
 
         protected override void OnResume()
         {
             base.OnResume();
 
-            if (this.IsServiceConnected)
-            {
-                // Revise the code below: What information to show when user returns to main screen?
-                // Connect to database 
-                TextView textView = FindViewById<TextView>(Resource.Id.textView1);
-                textView.Text = $"Recording...";
-                textView.SetTextColor(Color.DarkGray);
-            }
+            RegisterReceiver(receiver, new IntentFilter(LocationManager.ProvidersChangedAction));
+
+            this.CheckLocationProviderStatus();
+        }
+
+        protected override void OnPause()
+        {
+            UnregisterReceiver(receiver);
+
+            base.OnPause();
         }
 
         /// <summary>
@@ -96,15 +110,54 @@ namespace SimpleTracker
             DisconnectService();
         }
 
-        internal void ShowUpdates()
+        internal void TrackingServiceConnected()
         {
-            this.OnResume();
+            this.isServiceConnecting = false;
+            this.CheckLocationProviderStatus();
+        }
+
+        /// <summary>
+        /// Invoked when:
+        /// 1. OnResume of main activity
+        /// 2. GPS Status changed from settings while on main activity
+        /// 3. When tracking is started
+        /// </summary>
+        internal void CheckLocationProviderStatus()
+        {
+            var gpsManager = (LocationManager)GetSystemService(LocationService);
+            bool gpsEnabled = gpsManager.IsProviderEnabled(LocationManager.GpsProvider);
+
+            if (this.IsServiceConnected)
+            {
+                // Revise the code below: What information to show when user returns to main screen?
+                // Connect to database
+                TextView textView = FindViewById<TextView>(Resource.Id.textView1);
+                textView.SetTextColor(Color.DarkGray);
+
+                textView.Text = gpsEnabled
+                    ? "Recording..."
+                    : "Enable GPS to continue recording!";
+            }
+            else if (!isServiceConnecting)
+            {
+                if (gpsEnabled)
+                {
+                    EnableButton(Resource.Id.trackButton);
+                    string startText = FindViewById<TextView>(Resource.Id.trackButton).Text;
+                    FindViewById<TextView>(Resource.Id.textView1).Text = $"Press \"{startText}\" to start GPS recording";
+                }
+                else
+                {
+                    FindViewById<TextView>(Resource.Id.textView1).Text = "Turn on GPS, to start tracking";
+                    DisableButton(Resource.Id.trackButton);
+                }
+            }
         }
 
         private void StopButton_Click(object sender, EventArgs e)
         {
-            FindViewById<Button>(Resource.Id.trackButton).Enabled = true;
-            FindViewById<Button>(Resource.Id.stopTrackButton).Enabled = false;
+            EnableButton(Resource.Id.trackButton);
+            DisableButton(Resource.Id.stopTrackButton);
 
             FindViewById<TextView>(Resource.Id.textView1).Text += "\nStopped";
 
@@ -113,7 +166,9 @@ namespace SimpleTracker
 
         private void TrackButton_Click(object sender, EventArgs e)
         {
-            FindViewById<Button>(Resource.Id.trackButton).Enabled = false;
+            this.isServiceConnecting = true;
+
+            DisableButton(Resource.Id.trackButton);
 
             ActivityCompat.RequestPermissions(this, new string[] { Manifest.Permission.AccessFineLocation }, GpsRequestCode);
         }
@@ -137,7 +192,7 @@ namespace SimpleTracker
 
                 if (arePermissionsForLocationGranted)
                 {
-                    FindViewById<Button>(Resource.Id.stopTrackButton).Enabled = true;
+                    EnableButton(Resource.Id.stopTrackButton);
 
                     var intent = new Intent(this, typeof(Services.GpsTrackerService));
                     intent.SetAction("Start");
@@ -152,8 +207,8 @@ namespace SimpleTracker
                     text.Text = "Please provide GPS permissions.";
                     text.SetTextColor(Color.Red);
 
-                    FindViewById<Button>(Resource.Id.trackButton).Enabled = true;
-                    FindViewById<Button>(Resource.Id.stopTrackButton).Enabled = false;
+                    EnableButton(Resource.Id.trackButton);
+                    DisableButton(Resource.Id.stopTrackButton);
                 }
             }
 

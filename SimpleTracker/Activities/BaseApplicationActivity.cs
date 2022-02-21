@@ -1,6 +1,7 @@
 ﻿using Android.Content;
 using Android.Support.V7.App;
 using Android.Views;
+using Android.Widget;
 
 using SimpleTracker.Resources.layout;
 
@@ -26,6 +27,23 @@ namespace SimpleTracker.Activities
             }
 
             return base.OnOptionsItemSelected(item);
+        }
+
+        protected void EnableButton(int buttonResourceId)
+        {
+            SetButtonState(buttonResourceId, true);
+        }
+
+        protected void DisableButton(int buttonResourceId)
+        {
+            SetButtonState(buttonResourceId, false);
+        }
+
+        private void SetButtonState(int buttonResourceId, bool enabled)
+        {
+            Button button = FindViewById<Button>(buttonResourceId);
+            button.Enabled = enabled;
+            button.Clickable = enabled;
         }
     }
 }

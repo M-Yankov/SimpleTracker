@@ -26,7 +26,7 @@ namespace SimpleTracker.Connections
 
             if (this.IsConnected)
             {
-                this.mainActivity.ShowUpdates();
+                this.mainActivity.TrackingServiceConnected();
             }
         }
 

@@ -80,6 +80,7 @@
     <Compile Include="Adapters\RoutesAdapter.cs" />
     <Compile Include="Adapters\RoutesViewHolder.cs" />
     <Compile Include="Binders\GpsTrackerServiceBinder.cs" />
+    <Compile Include="Broadcasters\Receivers\LocationSettingsChagnedReceiver.cs" />
     <Compile Include="Common\ApplicationSecrets.cs" />
     <Compile Include="Common\Utilities.cs" />
     <Compile Include="Connections\GpsTrackerServiceConnection.cs" />
