@@ -15,6 +15,7 @@ using Android.Widget;
 
 using SimpleTracker.Activities;
 using SimpleTracker.Broadcasters.Receivers;
+using SimpleTracker.Common;
 using SimpleTracker.Dialogs;
 using SimpleTracker.Resources.layout;
 
@@ -176,6 +177,7 @@ namespace SimpleTracker
         private void ShowRoutes_Click(object sender, EventArgs e)
         {
             var activity = new Intent(this, typeof(RouteListActivity));
+            activity.PutExtra(SimpleConstants.ExtraNames.IsRecording, this.IsServiceConnected);
             StartActivity(activity);
         }
 
