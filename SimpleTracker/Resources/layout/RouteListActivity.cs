@@ -11,6 +11,7 @@ using Android.Widget;
 using V7 = Android.Support.V7.Widget;
 using Android.Views;
 using SimpleTracker.Activities;
+using SimpleTracker.Common;
 
 namespace SimpleTracker.Resources.layout
 {
@@ -35,13 +36,24 @@ namespace SimpleTracker.Resources.layout
             V7.RecyclerView routesList = FindViewById<V7.RecyclerView>(Resource.Id.routesListView);
 
             adapter.ItemClick += Adapter_ItemClick;
+
             V7.LinearLayoutManager layoutManager = new V7.LinearLayoutManager(this);
             routesList.SetLayoutManager(layoutManager);
             routesList.AddItemDecoration(new V7.DividerItemDecoration(routesList.Context, layoutManager.Orientation));
             routesList.SetAdapter(adapter);
 
-            Button clearAllRoutes = FindViewById<Button>(Resource.Id.clearAllRoutesButton);
-            clearAllRoutes.Click += ClearAllRoutes_Click;
+            // Same as savedInstanceState?.GetBoolean
+            bool isRecording = Intent.Extras.GetBoolean(SimpleConstants.ExtraNames.IsRecording);
+
+            if (isRecording)
+            {
+                DisableButton(Resource.Id.clearAllRoutesButton);
+            }
+            else
+            {
+                Button clearAllRoutes = FindViewById<Button>(Resource.Id.clearAllRoutesButton);
+                clearAllRoutes.Click += ClearAllRoutes_Click;
+            }
         }
 
         protected override void OnResume()
@@ -56,11 +68,12 @@ namespace SimpleTracker.Resources.layout
 
         private void Adapter_ItemClick(object sender, int id)
         {
-            // Toast.MakeText(this, $"RouteId {id}", ToastLength.Short).Show();
+            bool isRecording = Intent.Extras.GetBoolean(SimpleConstants.ExtraNames.IsRecording);
 
             var activity = new Intent(this, typeof(RouteDetailsActivity));
             Bundle bundle = new Bundle();
             bundle.PutInt("id", id);
+            bundle.PutBoolean(SimpleConstants.ExtraNames.IsRecording, isRecording);
             activity.PutExtras(bundle);
             StartActivity(activity);
         }

@@ -44,7 +44,6 @@ namespace SimpleTracker.Resources.layout
 
             List<SimpleGpsLocation> gpsLocations = this.database.GetRouteLocations(id);
             SimpleGpsRoute route = this.database.GetRoute(id);
-            stravaActivityid = route.StravaActivityId;
 
             // statistics calculated may not be accurate, due to incorrect locations provided by GPS provider
             float distanceInMeters = 0;
@@ -159,7 +158,6 @@ namespace SimpleTracker.Resources.layout
             FindViewById<TextView>(Resource.Id.routeDetailsId).Text = $"{id}";
 
             FindViewById<Button>(Resource.Id.delete_route_button).Click += DeleteRoute_Click;
-            FindViewById<Button>(Resource.Id.strava_view_activity_button).Click += ViewRouteDetailsClick;
         }
 
         protected override void OnResume()
@@ -167,18 +165,19 @@ namespace SimpleTracker.Resources.layout
             base.OnResume();
 
             int id = Intent.Extras.GetInt("id");
-
             SimpleGpsRoute route = this.database.GetRoute(id);
+            this.stravaActivityid = route.StravaActivityId;
 
-            SimpleGpsSettings settings = this.database.GetSettings();
-            bool isStravaAuthenticated = !string.IsNullOrWhiteSpace(settings.StravaRefreshToken);
             if (route.StravaActivityId.HasValue)
             {
                 FindViewById<Button>(Resource.Id.strava_view_activity_button).Visibility = Android.Views.ViewStates.Visible;
+                FindViewById<Button>(Resource.Id.strava_view_activity_button).Click += ViewRouteDetailsClick;
                 FindViewById<Button>(Resource.Id.strava_publish_route_button).Visibility = Android.Views.ViewStates.Gone;
             }
             else
             {
+                SimpleGpsSettings settings = this.database.GetSettings();
+                bool isStravaAuthenticated = !string.IsNullOrWhiteSpace(settings.StravaRefreshToken);
                 if (isStravaAuthenticated)
                 {
                     FindViewById<Button>(Resource.Id.strava_publish_route_button).Visibility = Android.Views.ViewStates.Visible;
@@ -192,6 +191,14 @@ namespace SimpleTracker.Resources.layout
                 }
 
                 FindViewById<Button>(Resource.Id.strava_view_activity_button).Visibility = Android.Views.ViewStates.Gone;
+            }
+
+            bool isRecording = Intent.Extras.GetBoolean(SimpleConstants.ExtraNames.IsRecording);
+            if (isRecording)
+            {
+                DisableStravaButton(Resource.Id.strava_view_activity_button);
+                DisableStravaButton(Resource.Id.strava_publish_route_button);
+                DisableButton(Resource.Id.delete_route_button);
             }
         }
 
@@ -221,11 +228,12 @@ namespace SimpleTracker.Resources.layout
             // This should be in a separate logic
             if (shouldRefreshToken)
             {
-                AuthorizationTokens newTokenInformation = new StravaAuthentication().GetAuthotizationsTokens(
-                    Utilities.DecryptValue(settings.StravaRefreshToken),
-                    ApplicationSecrets.Strava.ClientId,
-                    ApplicationSecrets.Strava.ClientSecret,
-                    StravaAuthentication.GrantTypeRefreshToken);
+                AuthorizationTokens newTokenInformation = new StravaAuthentication()
+                    .GetAuthotizationsTokens(
+                        Utilities.DecryptValue(settings.StravaRefreshToken),
+                        ApplicationSecrets.Strava.ClientId,
+                        ApplicationSecrets.Strava.ClientSecret,
+                        StravaAuthentication.GrantTypeRefreshToken);
 
                 accessToken = newTokenInformation.AccessToken;
 
@@ -259,7 +267,7 @@ namespace SimpleTracker.Resources.layout
 
         private void ViewRouteDetailsClick(object sender, EventArgs e)
         {
-            if (stravaActivityid.HasValue)
+            if (this.stravaActivityid.HasValue)
             {
                 var builder = new UriBuilder($"https://www.strava.com/activities/{stravaActivityid.Value}");
 
