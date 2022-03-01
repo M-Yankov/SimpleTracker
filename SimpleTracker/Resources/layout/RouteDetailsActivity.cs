@@ -44,7 +44,6 @@ namespace SimpleTracker.Resources.layout
 
             List<SimpleGpsLocation> gpsLocations = this.database.GetRouteLocations(id);
             SimpleGpsRoute route = this.database.GetRoute(id);
-            stravaActivityid = route.StravaActivityId;
 
             // statistics calculated may not be accurate, due to incorrect locations provided by GPS provider
             float distanceInMeters = 0;
@@ -167,6 +166,7 @@ namespace SimpleTracker.Resources.layout
 
             int id = Intent.Extras.GetInt("id");
             SimpleGpsRoute route = this.database.GetRoute(id);
+            this.stravaActivityid = route.StravaActivityId;
 
             if (route.StravaActivityId.HasValue)
             {
@@ -267,7 +267,7 @@ namespace SimpleTracker.Resources.layout
 
         private void ViewRouteDetailsClick(object sender, EventArgs e)
         {
-            if (stravaActivityid.HasValue)
+            if (this.stravaActivityid.HasValue)
             {
                 var builder = new UriBuilder($"https://www.strava.com/activities/{stravaActivityid.Value}");
 
